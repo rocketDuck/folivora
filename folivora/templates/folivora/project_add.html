@@ -2,7 +2,7 @@
 {% load floppyforms %}
 {% load i18n %}
 {% block content %}
-<form class="form-horizontal" action="" method="post">
+<form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
   {% csrf_token %}
   {% form form using 'floppyforms/layouts/bootstrap.html' %}
   <div class="form-actions">

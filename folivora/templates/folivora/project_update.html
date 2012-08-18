@@ -1,0 +1,52 @@
+{% extends 'page.html' %}
+{% load floppyforms %}
+{% load i18n %}
+{% block content %}
+<form class="form-horizontal" action="" method="post">
+  {% csrf_token %}
+  <h2>{% trans 'Edit members:' %}<a href="" class="btn btn-info pull-right">{% trans 'Add member' %}</a></h2>
+  {{ member_form.management_form }}
+  <table class="table table-striped table-bordered">
+    <thead>
+      <tr>
+        <th>{% trans 'Member' %}</th>
+        <th>{% trans 'State' %}</th>
+        <th class="span1">{% trans 'Delete' %}</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for f in member_form.forms %}
+      <tr>
+        <td>{{ f.id }}{{ f.instance.user.username }}</td>
+        <td>{{ f.state }}</td>
+        <td>{{ f.DELETE }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <h2>{% trans 'Edit packages:' %}</h2>
+  {{ dep_form.management_form }}
+  <table class="table table-striped table-bordered">
+    <thead>
+      <tr>
+        <th>{% trans 'Package' %}</th>
+        <th>{% trans 'Version' %}</th>
+        <th class="span1">{% trans 'Delete' %}</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for f in dep_form.forms %}
+      <tr>
+        <td>{{ f.id }}{{ f.instance.package.name }}</td>
+        <td>{{ f.version }}</td>
+        <td>{{ f.DELETE }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">{% trans 'Update project' %}</button>
+    <button class="btn" type="reset">{% trans 'Cancel' %}</button>
+  </div>
+</form>
+{% endblock content %}

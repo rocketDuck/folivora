@@ -23,7 +23,7 @@ PROVIDES = ('pypi',)
 class Package(models.Model):
     PYPI = 'pypi'
     PROVIDER_CHOICES = (
-        ('PyPi', PYPI),
+        (PYPI, 'PyPi'),
     )
 
     name = models.CharField(_('name'), max_length=255, unique=True)
@@ -89,13 +89,15 @@ class ProjectMember(models.Model):
     OWNER = 0
     MEMBER = 1
     STATE_CHOICES = (
-        (_('owner'), OWNER),
-        (_('member'), MEMBER)
+        (OWNER, _('owner')),
+        (MEMBER, _('member'))
     )
 
     project = models.ForeignKey('Project', verbose_name=_('project'))
     user = models.ForeignKey(User, verbose_name=_('user'))
     state = models.IntegerField(_('state'), choices=STATE_CHOICES)
+    mail = models.EmailField(_('Email'), max_length=255, null=True)
+    jabber = models.CharField(_('Jabber'), max_length=255, blank=True)
 
     class Meta:
         verbose_name = _('project member')
@@ -118,14 +120,12 @@ class Project(models.Model):
 
 
 class ProjectDependency(models.Model):
-    project = models.ForeignKey(Project, verbose_name=_('project'))
+    project = models.ForeignKey(Project, verbose_name=_('project'),
+                                related_name='dependencies')
     package = models.ForeignKey(Package, verbose_name=_('package'))
     version = models.CharField(_('version'), max_length=255)
-    update = models.ForeignKey(PackageVersion,
-                               verbose_name=_('update'),
-                               null=True,
-                               blank=True,
-                               default=None)
+    update = models.ForeignKey(PackageVersion, verbose_name=_('update'),
+                               null=True, blank=True, default=None)
 
     class Meta:
         verbose_name = _('project dependency')
