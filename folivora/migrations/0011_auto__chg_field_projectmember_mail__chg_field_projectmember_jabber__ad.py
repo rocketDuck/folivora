@@ -14,10 +14,6 @@ class Migration(SchemaMigration):
 
         # Changing field 'ProjectMember.jabber'
         db.alter_column('folivora_projectmember', 'jabber', self.gf('django.db.models.fields.CharField')(default='', max_length=255))
-        # Adding field 'Log.user'
-        db.add_column('folivora_log', 'user',
-                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True),
-                      keep_default=False)
 
 
     def backwards(self, orm):
@@ -27,8 +23,6 @@ class Migration(SchemaMigration):
 
         # Changing field 'ProjectMember.jabber'
         db.alter_column('folivora_projectmember', 'jabber', self.gf('django.db.models.fields.CharField')(max_length=255, null=True))
-        # Deleting field 'Log.user'
-        db.delete_column('folivora_log', 'user_id')
 
 
     models = {
