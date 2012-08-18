@@ -140,7 +140,7 @@ class CreateProjectMemberView(LoginRequiredMixin, TemplateView):
         form = CreateProjectMemberForm(request.POST)
         if form.is_valid():
             project_member = form.save(commit=False)
-            project_member.project = Project.objects.get(slug=self.kwargs['slug'])
+            project_member.project = Project.objects.get(slug=kwargs['slug'])
             project_member.state = ProjectMember.MEMBER
             project_member.save()
             context = {'id': project_member.id,

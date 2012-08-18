@@ -12,7 +12,7 @@ from django.utils.timezone import make_aware
 from django.contrib.auth.models import User
 
 from .models import (Package, PackageVersion, Project, Log,
-    ProjectDependency)
+    ProjectDependency, ProjectMember)
 from . import tasks
 from .utils import get_model_type, parse_requirements
 from .utils.jabber import is_valid_jid
@@ -244,7 +244,9 @@ class TestProjectViews(TestCase):
     def test_app_project_member(self):
         response = self.c.post('/project/test/add/', {'user': self.user.id})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, '{"username": "apollo13", "id": 1}')
+        id = ProjectMember.objects.filter(project=self.project)[0].id
+        self.assertEqual(response.content,
+            '{"username": "apollo13", "id": %d}' % id)
 
 
 class TestUserProfileView(TestCase):
