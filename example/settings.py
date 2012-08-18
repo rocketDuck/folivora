@@ -74,7 +74,7 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '#_2lhgp=*omzokjalpgd$39t#w&amp;50v-k9ngp386q!6cq8&amp;hh#8'
+SECRET_KEY = 'REPLACE_ME_ON_DEPLOYMENT'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -93,10 +93,10 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'folivora.urls'
+ROOT_URLCONF = 'example.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'folivora.wsgi.application'
+WSGI_APPLICATION = 'example.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
