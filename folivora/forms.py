@@ -10,6 +10,7 @@ from .models import (Project, UserProfile, Package, ProjectDependency,
     ProjectMember)
 from .utils.forms import ModelForm, JabberField
 from .utils import parse_requirements
+from .tasks import sync_project
 
 import floppyforms as forms
 
@@ -57,7 +58,7 @@ class AddProjectForm(ModelForm):
         for dep in deps:
             dep.project = project
         ProjectDependency.objects.bulk_create(deps)
-
+        sync_project.delay(project.pk)
         return project
 
 
