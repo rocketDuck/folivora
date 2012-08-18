@@ -3,4 +3,9 @@
 {% load i18n %}
 {% block content %}
 <h1>{{ project.name }}<a href="{% url 'folivora_project_update' project.slug %}" class="btn btn-primary pull-right">{% trans 'Edit project' %}</a></h1>
+<ul>
+{% for entry in log_entries %}
+  <li>{{ entry.display }}</li>
+{% endfor %}
+</ul>
 {% endblock content %}

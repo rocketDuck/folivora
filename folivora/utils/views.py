@@ -1,3 +1,9 @@
+from django.http import HttpResponseForbidden
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+
+from ..models import Project
+
 
 class SortListMixin(object):
     sort_fields = None
@@ -26,3 +32,12 @@ class SortListMixin(object):
         self.sort_order = 'desc' if self.sort_field[0] == '-' else 'asc'
         self.sort_field = self.sort_field.strip('-')
         return qs
+
+
+class MemberRequiredMixin(object):
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        slug = kwargs['slug']
+        if not Project.objects.filter(members=request.user).exists():
+            return HttpResponseForbidden('403 - Forbidden')
+        return super(MemberRequiredMixin, self).dispatch(request, *args, **kwargs)

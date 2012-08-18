@@ -5,10 +5,11 @@ import datetime
 import pytz
 
 from django.db import models
+from django.db.models.loading import get_model
 from django.db.models.signals import post_save
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
-from django.utils.timezone import make_aware
+from django.utils.timezone import make_aware, now
 
 from django.contrib.auth.models import User
 
@@ -118,6 +119,14 @@ class Project(models.Model):
     def get_absolute_url(self):
         return 'folivora_project_detail', (), {'slug': self.slug}
 
+    def create_logentry(self, action, user, **kwargs):
+        Log.objects.create(project=self, type='folivora.project',
+            action=action, data=kwargs, user=user)
+
+    @classmethod
+    def format_logentry(cls, log):
+        return "HI"
+
 
 class ProjectDependency(models.Model):
     project = models.ForeignKey(Project, verbose_name=_('project'),
@@ -136,16 +145,23 @@ class Log(models.Model):
     project = models.ForeignKey(Project, verbose_name=_('project'))
     package = models.ForeignKey(Package, verbose_name=_('package'),
                                 null=True, blank=True, default=None)
-    when = models.DateTimeField(_('when'))
+    user = models.ForeignKey(User, verbose_name=_('user'), null=True)
+    when = models.DateTimeField(_('when'), default=now)
     action = models.CharField(_('action'), max_length=255)
     type = models.CharField(_('type'), max_length=255)
-    data = data = hstore.DictionaryField()
+    data = hstore.DictionaryField()
 
     objects = hstore.HStoreManager()
 
     class Meta:
         verbose_name = _('log')
         verbose_name_plural = _('logs')
+
+    @property
+    def display(self):
+        app, model = self.type.split('.')
+        model = get_model(app, model)
+        return model.format_logentry(self)
 
 
 class SyncState(models.Model):
