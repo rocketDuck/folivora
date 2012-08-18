@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+    folivora.utils.html
+    ~~~~~~~~~~~~~~~~~~~
+
+    Useful utils for html formatting, backported from Django 1.5
+"""
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 
