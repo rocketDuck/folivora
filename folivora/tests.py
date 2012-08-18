@@ -277,6 +277,19 @@ class TestProjectViews(TestCase):
         self.assertEqual(response.content,
             '{"username": "apollo13", "id": %d}' % id)
 
+    def test_resign_project(self):
+        self.c.login(username='apollo13', password='pwd')
+        ProjectMember.objects.create(user=self.user, project=self.project,
+                                     state=ProjectMember.MEMBER)
+        response = self.c.get('/project/test/resign/')
+        self.assertEqual(response.status_code, 200)
+        response = self.c.post('/project/test/resign/')
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(ProjectMember.objects.filter(project=self.project,
+                                                      user=self.user).exists())
+        response = self.c.post('/project/test/resign/')
+        self.assertEqual(response.status_code, 403)
+
 
 class TestUserProfileView(TestCase):
     def setUp(self):
