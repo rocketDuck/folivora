@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block body %}
+{% blocktrans %}Account activation faild. Please check your activation key:{% endblocktrans %} {{ activation_key }}
+{% endblock body %}

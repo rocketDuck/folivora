@@ -84,6 +84,10 @@ class Project(models.Model):
         verbose_name = _('project')
         verbose_name_plural = _('projects')
 
+    @models.permalink
+    def get_absolute_url(self):
+        return 'folivora_project_detail', (), {'slug': self.slug}
+
 
 class ProjectDependency(models.Model):
     project = models.ForeignKey(Project, verbose_name=_('project'))
