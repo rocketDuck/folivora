@@ -9,11 +9,9 @@ from django.utils.translation import ugettext_lazy, gettext as _
 from .models import (Project, UserProfile, Package, ProjectDependency,
     ProjectMember)
 from .utils.forms import ModelForm, JabberField
-from .utils.jabber import is_valid_jid
+from .utils import parse_requirements
 
 import floppyforms as forms
-
-import pkg_resources
 
 
 TIMEZONES = pytz.common_timezones
@@ -31,21 +29,9 @@ class AddProjectForm(ModelForm):
         super(AddProjectForm, self).__init__(*args, **kwargs)
 
     def clean_requirements(self):
-        data = self.cleaned_data['requirements'].readlines()
-        missing = []
-        packages = {}
+        data = self.cleaned_data['requirements']
 
-        for line in data:
-            try:
-                req = pkg_resources.parse_requirements(line.strip()).next()
-            except ValueError as e:
-                continue
-
-            specs = [s for s in req.specs if s[0] == '==']
-            if specs:
-                packages[req.project_name] = specs[0][1]
-            else:
-                missing.append(req.project_name)
+        packages, missing = parse_requirements(data)
 
         known_packages = Package.objects.filter(name__in=packages.keys())\
             .values_list('name', 'pk')
