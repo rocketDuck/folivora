@@ -1,12 +1,12 @@
 from django.shortcuts import render
 from django.views.generic.base import TemplateView
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView
 from django.views.generic.list import ListView
 
 from braces.views import LoginRequiredMixin
 
 from .forms import AddProjectForm
-from .models import Project
+from .models import Project, UserProfile
 from .utils.views import SortListMixin
 
 
@@ -36,3 +36,13 @@ project_add = AddProjectView.as_view()
 
 project_detail = lambda x, slug: render(x, 'folivora/index.html')
 project_edit = lambda x, slug: render(x, 'folivora/index.html')
+
+
+class UpdateUserProfileView(UpdateView):
+    model = UserProfile
+
+    def get_queryset(self):
+        return self.request.user.get_profile()
+
+
+profile_edit = UpdateUserProfileView.as_view()
