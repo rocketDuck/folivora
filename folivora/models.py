@@ -69,6 +69,7 @@ class Package(models.Model):
     class Meta:
         verbose_name = _('package')
         verbose_name_plural = _('packages')
+        unique_together = ('name', 'provider')
 
     def __unicode__(self):
         return self.name
@@ -108,7 +109,7 @@ class ProjectMember(models.Model):
     class Meta:
         verbose_name = _('project member')
         verbose_name_plural = _('project members')
-        unique_together = ("project", "user")
+        unique_together = ('project', 'user')
 
 
 class Project(models.Model):
@@ -140,13 +141,14 @@ class ProjectDependency(models.Model):
     update = models.ForeignKey(PackageVersion, verbose_name=_('update'),
                                null=True, blank=True, default=None)
 
-    @property
-    def update_available(self):
-        return self.update_id is not None
-
     class Meta:
         verbose_name = _('project dependency')
         verbose_name_plural = _('project dependencies')
+        unique_together = ('project', 'package')
+
+    @property
+    def update_available(self):
+        return self.update_id is not None
 
 
 class Log(models.Model):
