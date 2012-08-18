@@ -67,5 +67,8 @@ class CheeseShop(object):
                         version will be used.
         """
         if version is None:
-            version = self.get_package_versions(package_name)[-1]
+            versions = self.get_package_versions(package_name)
+            if not versions:
+                return {}
+            version = versions[-1]
         return self.xmlrpc.release_data(package_name, version)
