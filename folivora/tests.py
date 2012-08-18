@@ -36,8 +36,16 @@ class CheesyMock(object):
                  'packagetype': 'sdist',
                  'python_version': 'source',
                  'size': 223006,
-                 'upload_time': datetime.datetime(2012, 8, 18, 3, 17, 15),
+                 'upload_time': datetime(2012, 8, 18, 3, 17, 15),
                  'url': 'http://pypi.python.org/packages/source/p/pmxbot/pmxbot-1101.8.1.zip'}]
+
+    def get_package_versions(self, name):
+        if name == 'pmxbot':
+            return ['1101.8.1']
+        elif name == 'pytz':
+            return ['2012d']
+        else:
+            return ['0']
 
 
 class TestPackageModel(TestCase):
@@ -59,7 +67,7 @@ class TestPackageModel(TestCase):
         self.assertEqual(pkg.url, 'http://pypi.python.org/pypi/gunicorn')
         self.assertEqual(pkg.provider, 'pypi')
 
-    @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
+    @mock.patch('folivora.models.CheeseShop', CheesyMock)
     def test_version_sync(self):
         pkg = Package.objects.get(name='pmxbot')
         self.assertEqual(pkg.versions.count(), 0)
@@ -149,11 +157,8 @@ class TestSyncProjectTask(TestCase):
 
     def setUp(self):
         pkg = Package.create_with_provider_url('pmxbot')
-        pkg.versions.add(PackageVersion(version='1101.8.0',
-                                        release_date=now()))
-        pkg.versions.add(PackageVersion(version='1101.8.1',
-                                        release_date=now()))
         pkg2 = Package.create_with_provider_url('gunicorn')
+        pkg3 = Package.create_with_provider_url('pytz')
         self.project = Project.objects.create(name='test', slug='test')
         dependency = ProjectDependency.objects.create(
             project=self.project,
@@ -163,14 +168,24 @@ class TestSyncProjectTask(TestCase):
             project=self.project,
             package=pkg2,
             version='0.14.6')
+        dependency3 = ProjectDependency.objects.create(
+            project=self.project,
+            package=pkg3,
+            version='2012a')
 
+    @mock.patch('folivora.models.CheeseShop', CheesyMock)
     def test_sync_project(self):
         result = tasks.sync_project.apply(args=(self.project.pk,), throw=True)
         self.assertTrue(result.successful())
         dep = ProjectDependency.objects.get(project=self.project,
-                                            package__name='pmxbot',
-                                            version='1101.8.0')
+                                            package__name='pmxbot')
         self.assertEqual(dep.update.version, '1101.8.1')
+        dep = ProjectDependency.objects.get(project=self.project,
+                                            package__name='pytz')
+        self.assertEqual(dep.update.version, '2012d')
+        dep = ProjectDependency.objects.get(project=self.project,
+                                            package__name='gunicorn')
+        self.assertEqual(dep.update, None)
 
 
 VALID_REQUIREMENTS = 'Django==1.4.1\nSphinx==1.10'
