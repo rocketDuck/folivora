@@ -37,19 +37,23 @@ class CheeseShop(object):
         """Query using search spec."""
         return self.xmlrpc.search(spec, operator.lower())
 
-    def get_changelog(self, hours):
+    def get_changelog(self, hours, force_seconds=False):
         """Query the changelog.
 
         :param hours: Hours from now to specify the changelog size.
+        :param force_seconds: Force that `hours` is already the number of seconds to use.
         """
-        return self.xmlrpc.changelog(get_seconds(hours))
+        seconds = get_seconds(hours) if not force_seconds else hours
+        return self.xmlrpc.changelog(seconds)
 
-    def get_updated_releases(self, hours):
+    def get_updated_releases(self, hours, force_seconds):
         """Query all updated releases within `hours`.
 
         :param hours: Specify the number of hours to find updated releases.
+        :param force_seconds: Force that `hours` is already the number of seconds to use.
         """
-        return self.xmlrpc.updated_releases(get_seconds(hours))
+        seconds = get_seconds(hours) if not force_seconds else hours
+        return self.xmlrpc.updated_releases(seconds)
 
     def get_release_urls(self, package_name, version):
         """Query for all available release urls of `package_name`.
