@@ -4,6 +4,6 @@ python:
 install:
   - pip install -r requirements.txt --use-mirrors
 before_script:
-  - psql -c 'create extension hstore;' -U postgres
+  - psql -c 'create extension hstore;' -U postgres template1
   - psql -c 'create database folivora;' -U postgres
 script: ./manage.py test folivora
