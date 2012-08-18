@@ -23,7 +23,7 @@ PROVIDES = ('pypi',)
 class Package(models.Model):
     PYPI = 'pypi'
     PROVIDER_CHOICES = (
-        ('PyPi', PYPI),
+        (PYPI, 'PyPi'),
     )
 
     name = models.CharField(_('name'), max_length=255, unique=True)
@@ -89,8 +89,8 @@ class ProjectMember(models.Model):
     OWNER = 0
     MEMBER = 1
     STATE_CHOICES = (
-        (_('owner'), OWNER),
-        (_('member'), MEMBER)
+        (OWNER, _('owner')),
+        (MEMBER, _('member'))
     )
 
     project = models.ForeignKey('Project', verbose_name=_('project'))
@@ -120,14 +120,12 @@ class Project(models.Model):
 
 
 class ProjectDependency(models.Model):
-    project = models.ForeignKey(Project, verbose_name=_('project'))
+    project = models.ForeignKey(Project, verbose_name=_('project'),
+                                related_name='dependencies')
     package = models.ForeignKey(Package, verbose_name=_('package'))
     version = models.CharField(_('version'), max_length=255)
-    update = models.ForeignKey(PackageVersion,
-                               verbose_name=_('update'),
-                               null=True,
-                               blank=True,
-                               default=None)
+    update = models.ForeignKey(PackageVersion, verbose_name=_('update'),
+                               null=True, blank=True, default=None)
 
     class Meta:
         verbose_name = _('project dependency')

@@ -3,8 +3,8 @@ import pytz
 from django import forms
 from django.utils.translation import ugettext_lazy
 
-from .models import Project, UserProfile, Package, ProjectDependency
-from .utils.forms import ModelForm
+from .models import (Project, UserProfile, Package, ProjectDependency,
+    ProjectMember)
 from .utils.forms import ModelForm, JabberField
 from .utils.jabber import is_valid_jid
 
@@ -21,7 +21,11 @@ class AddProjectForm(ModelForm):
 
     class Meta:
         model = Project
-        exclude = ('members',)
+        fields = ('name', 'slug')
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')
+        super(AddProjectForm, self).__init__(*args, **kwargs)
 
     def clean_requirements(self):
         data = self.cleaned_data['requirements']
@@ -52,6 +56,8 @@ class AddProjectForm(ModelForm):
     def save(self, commit=True):
         assert commit == True
         project = super(AddProjectForm, self).save(True)
+        ProjectMember.objects.create(user=self.user, state=ProjectMember.OWNER,
+            project=project)
         deps = self.cleaned_data['requirements']
         for dep in deps:
             dep.project = project
@@ -59,10 +65,10 @@ class AddProjectForm(ModelForm):
         return project
 
 
-class UpdateProjectForm(ModelForm):
+class ProjectDependencyForm(ModelForm):
     class Meta:
-        model = Project
-        exclude = ('members', 'slug')
+        model = ProjectDependency
+        fields = ('version', 'id')
 
 
 class UpdateUserProfileForm(ModelForm):
@@ -72,3 +78,9 @@ class UpdateUserProfileForm(ModelForm):
     class Meta:
         model = UserProfile
         exclude = ('user',)
+
+
+class ProjectMemberForm(ModelForm):
+    class Meta:
+        model = ProjectMember
+        fields = ('id', 'state')

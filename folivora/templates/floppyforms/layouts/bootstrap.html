@@ -1,4 +1,4 @@
-{% load floppyforms %}{% block formconfig %}{% formconfig row using "floppyforms/rows/bootstrap.html" %}{% endblock %}<html>
+{% load floppyforms %}{% block formconfig %}{% formconfig row using "floppyforms/rows/bootstrap.html" %}{% endblock %}
 {% block forms %}{% for form in forms %}
 {% block errors %}{% if form.non_field_errors or form|hidden_field_errors %}
     {% for error in form.non_field_errors %}<div class="alert alert-error">{{ error }}</div>{% endfor %}
