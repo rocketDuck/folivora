@@ -1,9 +1,13 @@
+import urlparse
+
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from django.contrib.auth.models import User
 
 from django_orm.postgresql import hstore
+
+from folivora.utils.pypi import DEFAULT_SERVER
 
 
 PROVIDES = ('pypi',)
@@ -19,6 +23,14 @@ class Package(models.Model):
     url = models.URLField(_('url'))
     provider = models.CharField(_('provider'), max_length=255,
         choices=PROVIDER_CHOICES)
+
+    @classmethod
+    def create_with_provider_url(cls, name, provider='pypi', url=None):
+        if url is None:
+            url = urlparse.urljoin(DEFAULT_SERVER, name)
+        pkg = cls(name=name, url=url, provider=provider)
+        pkg.save()
+        return pkg
 
     class Meta:
         verbose_name = _('package')
