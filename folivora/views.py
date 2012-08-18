@@ -4,15 +4,15 @@ from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import render
 from django.utils.translation import ugettext
 from django.views.generic.base import TemplateView
-from django.views.generic.edit import CreateView, DeleteView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
 
 from django.contrib import messages
 
 from braces.views import LoginRequiredMixin
 
-from .forms import AddProjectForm
-from .models import Project
+from .forms import AddProjectForm, UpdateUserProfileForm
+from .models import Project, UserProfile
 from .utils.views import SortListMixin
 
 
@@ -57,3 +57,12 @@ project_delete = DeleteProjectView.as_view()
 
 project_detail = lambda x, slug: render(x, 'folivora/index.html')
 project_edit = lambda x, slug: render(x, 'folivora/index.html')
+
+
+class UpdateUserProfileView(UpdateView):
+    form_class = UpdateUserProfileForm
+    def get_object(self, queryset=None):
+        return self.request.user.get_profile()
+
+
+profile_edit = UpdateUserProfileView.as_view()
