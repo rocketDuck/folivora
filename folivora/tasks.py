@@ -10,10 +10,10 @@ import time
 import datetime
 import pytz
 from celery import task
-from django.utils.timezone import make_naive, make_aware
+from django.utils.timezone import make_aware
 from folivora.models import SyncState, Package, PackageVersion, \
     ProjectDependency
-from folivora.utils.pypi import CheeseShop, DEFAULT_SERVER
+from folivora.utils.pypi import CheeseShop
 
 
 @task
@@ -33,9 +33,10 @@ def sync_with_changelog():
         create				- Create a new package
         update %(type)s                 - Update some detailed classifiers
     """
+    default_last_sync = make_aware(datetime.datetime.utcnow(), pytz.UTC)
     state, created = SyncState.objects.get_or_create(
         type=SyncState.CHANGELOG,
-        defaults={'last_sync': make_aware(datetime.datetime.utcnow(), pytz.UTC)})
+        defaults={'last_sync': default_last_sync})
 
     epoch = int(time.mktime(state.last_sync.timetuple()))
 
@@ -58,6 +59,8 @@ def sync_with_changelog():
                 print "version %s already exists!" % version
             else:
                 print "update %s with version %s" % (package, version)
-                update = PackageVersion(version=version, release_date=release_date)
+                update = PackageVersion(version=version,
+                                        release_date=release_date)
                 pkg.versions.add(update)
-                ProjectDependency.objects.filter(package=pkg).update(update=update)
+                ProjectDependency.objects.filter(package=pkg) \
+                                         .update(update=update)

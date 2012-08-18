@@ -93,7 +93,11 @@ class ProjectDependency(models.Model):
     project = models.ForeignKey(Project, verbose_name=_('project'))
     package = models.ForeignKey(Package, verbose_name=_('package'))
     version = models.CharField(_('version'), max_length=255)
-    update = models.ForeignKey(PackageVersion, verbose_name=_('update'), null=True, blank=True, default=None)
+    update = models.ForeignKey(PackageVersion,
+                               verbose_name=_('update'),
+                               null=True,
+                               blank=True,
+                               default=None)
 
     class Meta:
         verbose_name = _('project dependency')

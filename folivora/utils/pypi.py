@@ -41,7 +41,7 @@ class CheeseShop(object):
         """Query the changelog.
 
         :param hours: Hours from now to specify the changelog size.
-        :param force_seconds: Force that `hours` is already the number of seconds to use.
+        :param force_seconds: Force that `hours` are the seconds to use.
         """
         seconds = get_seconds(hours) if not force_seconds else hours
         return self.xmlrpc.changelog(seconds)
@@ -50,7 +50,7 @@ class CheeseShop(object):
         """Query all updated releases within `hours`.
 
         :param hours: Specify the number of hours to find updated releases.
-        :param force_seconds: Force that `hours` is already the number of seconds to use.
+        :param force_seconds: Force that `hours` are the seconds to use.
         """
         seconds = get_seconds(hours) if not force_seconds else hours
         return self.xmlrpc.updated_releases(seconds)
