@@ -11,8 +11,8 @@ import datetime
 import pytz
 from celery import task
 from django.utils import timezone
-from folivora.models import SyncState, Package, PackageVersion, \
-    ProjectDependency, Log, Project
+from (folivora.models import SyncState, Package, PackageVersion,
+    ProjectDependency, Log, Project)
 from folivora.utils.pypi import CheeseShop
 
 
@@ -58,7 +58,7 @@ def sync_with_changelog():
                 pkg.versions.add(update)
                 ProjectDependency.objects.filter(package=pkg) \
                                          .update(update=update)
-            affected_projects = Project.objects.filter(dependencies__package=pkg)\
+            affected_projects = Project.objects.filter(dependencies__package=pkg) \
                                                .values_list('id', flat=True)
             log_entries = []
             for project in affected_projects:

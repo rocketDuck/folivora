@@ -116,7 +116,9 @@ class DetailProjectView(MemberRequiredMixin, DetailView):
         context = super(DetailProjectView, self).get_context_data(**kwargs)
         project = context['object']
         context.update({
-            'log_entries': Log.objects.filter(project=project).order_by('-when')
+            'log_entries': Log.objects.filter(project=project) \
+                                      .order_by('-when') \
+                                      .select_related('user')
         })
         return context
 
