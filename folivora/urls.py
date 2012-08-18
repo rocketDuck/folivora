@@ -7,4 +7,5 @@ urlpatterns = patterns('folivora.views',
     url('^projects/add$', 'project_add', name='folivora_project_add'),
     url('^project/(?P<slug>[\w-]+)/$', 'project_detail', name='folivora_project_detail'),
     url('^project/(?P<slug>[\w-]+)/edit/$', 'project_edit', name='folivora_project_edit'),
+    url('^project/(?P<slug>[\w-]+)/delete/$', 'project_delete', name='folivora_project_delete'),
 )

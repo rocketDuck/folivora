@@ -22,7 +22,7 @@
         </td>
         <td class="span1">
           <a href="{% url 'folivora_project_edit' project.slug %}"><i class="icon-edit"></i></a>
-          <a href=""><i class="icon-trash"></i></a>
+          <a href="{% url 'folivora_project_delete' project.slug %}"><i class="icon-trash"></i></a>
         </td>
       </tr>
     {% endfor %}
