@@ -58,12 +58,15 @@ def sync_with_changelog():
                 pkg.versions.add(update)
                 ProjectDependency.objects.filter(package=pkg) \
                                          .update(update=update)
-            affected_projects = Project.objects.filter(dependencies__package=pkg).all()
+            affected_projects = Project.objects.filter(dependencies__package=pkg)\
+                                               .values_list('id', flat=True)
+            log_entries = []
             for project in affected_projects:
                 # Add log entry for new package release
-                Log.objects.create(project=project,
-                                   package=pkg,
-                                   when=timezone.now(),
-                                   action='new_release',
-                                   type='folivora.package',
-                                   data={'version': version})
+                log = Log(project_id=project,
+                          package=pkg,
+                          action='new_release',
+                          type='folivora.package',
+                          data={'version': version})
+                log_entries.append(log)
+            Log.objects.bulk_create(log_entries)
