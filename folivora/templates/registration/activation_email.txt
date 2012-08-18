@@ -1,0 +1,5 @@
+{% load i18n %}{% url 'registration_activate' as registration_activate_url %}{% blocktrans %}Hello {{ user }},
+
+your activation_key: {{ site.domain }}{{ registration_activate_url }}{{ activation_key }}
+{% endblocktrans %}
+

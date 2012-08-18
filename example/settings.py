@@ -115,6 +115,7 @@ INSTALLED_APPS = (
     'djcelery',
     'gunicorn',
     'folivora',
+    'registration',
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
@@ -153,3 +154,8 @@ LOGGING = {
 # Initialize django-celery
 import djcelery
 djcelery.setup_loader()
+
+
+# Django-registration
+ACCOUNT_ACTIVATION_DAYS = 42
+REGISTRATION_OPEN = True
