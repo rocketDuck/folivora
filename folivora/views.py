@@ -166,6 +166,26 @@ class CreateProjectMemberView(LoginRequiredMixin, TemplateView):
 project_add_member = CreateProjectMemberView.as_view()
 
 
+class ResignProjectView(LoginRequiredMixin, DeleteView):
+    success_url = reverse_lazy('folivora_project_list')
+
+    def get_object(self, queryset=None):
+        slug = self.kwargs.get('slug', None)
+        if slug is None:
+            raise AttributeError('ResignProjectView must be called with a slug')
+        self.project = Project.objects.get(slug=slug)
+        user = self.request.user
+        return ProjectMember.objects.get(project=self.project, user=user)
+
+    def get_context_data(self, **kwargs):
+        context = super(ResignProjectView, self).get_context_data(**kwargs)
+        context['project'] = self.project
+        return context
+
+
+project_resign = ResignProjectView.as_view()
+
+
 class UpdateUserProfileView(LoginRequiredMixin, UpdateView):
     form_class = UpdateUserProfileForm
 

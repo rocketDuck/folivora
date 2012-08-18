@@ -1,0 +1,14 @@
+{% extends 'page.html' %}
+{% load url from future %}
+{% load i18n %}
+{% block headline %}{% trans 'Confirm deletion' %}{% endblock headline %}
+{% block content %}
+{% blocktrans with name=project.name %}Do you really want resign from the project “{{ name }}”?{% endblocktrans %}
+<form method="post" action="">
+  {% csrf_token %}
+  <div class="form-actions">
+    <button class="btn btn-danger" type="submit">{% trans 'Yes, resign' %}</button>
+    <a href="{% url 'folivora_project_list' %}" class="btn">{% trans 'No, take me back' %}</a>
+  </div>
+</form>
+{% endblock content %}

@@ -21,8 +21,9 @@
           <a href="{{ project.get_absolute_url }}">{{ project.name }}</a>
         </td>
         <td class="span1">
-          <a href="{% url 'folivora_project_update' project.slug %}"><i class="icon-edit"></i></a>
-          <a href="{% url 'folivora_project_delete' project.slug %}"><i class="icon-trash"></i></a>
+          <a href="{% url 'folivora_project_update' project.slug %}" title="{% trans 'edit' %}"><i class="icon-edit"></i></a>
+          <a href="{% url 'folivora_project_resign' project.slug %}" title="{% trans 'resign' %}"><i class="icon-leaf"></i></a>
+          <a href="{% url 'folivora_project_delete' project.slug %}" title="{% trans 'delete' %}"><i class="icon-trash"></i></a>
         </td>
       </tr>
     {% endfor %}
