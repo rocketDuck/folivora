@@ -11,6 +11,7 @@ import datetime
 import pytz
 from celery import task
 from django.utils import timezone
+from distutils.version import StrictVersion
 
 from .models import (SyncState, Package, PackageVersion,
     ProjectDependency, Log, Project)
@@ -95,3 +96,16 @@ def sync_with_changelog():
             #TODO: do we need to create a log or handle any other special things?
             #      Looks damn empty :-)
             Package.objects.create_with_provider(package)
+
+
+@task
+def sync_new_project(project_pk):
+    project = Project.objects.get(pk=project_pk)
+
+    for dependency in project.dependencies.all():
+        versions = list(dependency.package.versions.values_list('version', flat=True))
+        if versions:
+            versions.sort(key=StrictVersion)
+            dependency.update = PackageVersion.objects.get(package=dependency.package,
+                                                           version=versions[-1])
+            dependency.save()
