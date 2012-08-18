@@ -275,12 +275,14 @@ class TestUserProfileView(TestCase):
         response = self.c.post('/accounts/profile/', {
             'jabber': 'jabber@example.com',
             'language': 'de',
-            'timezone': 'Europe/Berlin',})
+            'timezone': 'Europe/Berlin',
+            'email': 'mail@example.com'})
         self.assertEqual(response.status_code, 302)
         response = self.c.post('/accounts/profile/', {
             'jabber': 'wrong',
             'language': 'de',
-            'timezone': 'Europe/Berlin',})
+            'timezone': 'Europe/Berlin',
+            'email': 'mail@example.com'})
         self.assertEqual(response.status_code, 200)
 
 
