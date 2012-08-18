@@ -1,7 +1,10 @@
+from itertools import izip
+
 import pytz
 
 from django import forms
-from django.utils.translation import ugettext_lazy
+from django.core.exceptions import ValidationError
+from django.utils.translation import ugettext_lazy, gettext as _
 
 from .models import (Project, UserProfile, Package, ProjectDependency,
     ProjectMember)
@@ -28,11 +31,16 @@ class AddProjectForm(ModelForm):
         super(AddProjectForm, self).__init__(*args, **kwargs)
 
     def clean_requirements(self):
-        data = self.cleaned_data['requirements']
-        requirements = pkg_resources.parse_requirements(data.readlines())
+        data = self.cleaned_data['requirements'].readlines()
         missing = []
         packages = {}
-        for req in requirements:
+
+        for line in data:
+            try:
+                req = pkg_resources.parse_requirements(line.strip()).next()
+            except ValueError as e:
+                continue
+
             specs = [s for s in req.specs if s[0] == '==']
             if specs:
                 packages[req.project_name] = specs[0][1]
@@ -86,3 +94,9 @@ class ProjectMemberForm(ModelForm):
     class Meta:
         model = ProjectMember
         fields = ('id', 'state')
+
+
+class CreateProjectMemberForm(ModelForm):
+    class Meta:
+        model = ProjectMember
+        fields = ('user', )

@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 
+
+import json
+
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.forms.models import inlineformset_factory
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
+from django.template.loader import render_to_string
 from django.utils.translation import ugettext as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
@@ -15,7 +19,7 @@ from django.contrib import messages
 from braces.views import LoginRequiredMixin, UserFormKwargsMixin
 
 from .forms import (AddProjectForm, UpdateUserProfileForm,
-    ProjectDependencyForm, ProjectMemberForm)
+    ProjectDependencyForm, ProjectMemberForm, CreateProjectMemberForm)
 from .models import (Project, UserProfile, ProjectDependency, ProjectMember,
     Log)
 from .utils.views import SortListMixin, MemberRequiredMixin
@@ -67,9 +71,12 @@ class UpdateProjectView(MemberRequiredMixin, TemplateView):
                                        instance=object)
         member_form = self.member_form_class(data, instance=object,
                                              queryset=self.member_qs)
+        add_member_form = CreateProjectMemberForm()
         context.update({
             'dep_form': dep_form,
-            'member_form': member_form
+            'member_form': member_form,
+            'add_member_form': add_member_form,
+            'project': object,
         })
         return context
 
@@ -122,8 +129,30 @@ class DetailProjectView(MemberRequiredMixin, DetailView):
         })
         return context
 
-
 project_detail = DetailProjectView.as_view()
+
+
+class CreateProjectMemberView(LoginRequiredMixin, TemplateView):
+    model = ProjectMember
+    form_class = CreateProjectMemberForm
+
+    def post(self, request, *args, **kwargs):
+        form = CreateProjectMemberForm(request.POST)
+        if form.is_valid():
+            project_member = form.save(commit=False)
+            project_member.project = Project.objects.get(slug=self.kwargs['slug'])
+            project_member.state = ProjectMember.MEMBER
+            project_member.save()
+            member_form = ProjectMemberForm(instance=project_member)
+            new_row = render_to_string('folivora/project_edit_member_row.html', {
+                'f': member_form})
+            context = {'new_row': new_row}
+        else:
+            context = {'error': json.dumps(form.errors)}
+        return HttpResponse(json.dumps(context))
+
+
+project_add_member = CreateProjectMemberView.as_view()
 
 
 class UpdateUserProfileView(LoginRequiredMixin, UpdateView):
