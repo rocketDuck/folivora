@@ -111,6 +111,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'djcelery',
     'gunicorn',
     'folivora',
     # Uncomment the next line to enable the admin:
@@ -147,3 +148,7 @@ LOGGING = {
         },
     }
 }
+
+# Initialize django-celery
+import djcelery
+djcelery.setup_loader()
