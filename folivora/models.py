@@ -5,6 +5,7 @@ import datetime
 import pytz
 
 from django.db import models
+from django.db.models.signals import post_save
 from django.utils.translation import ugettext_lazy as _
 from django.utils.timezone import make_aware
 
@@ -102,7 +103,7 @@ class ProjectMember(models.Model):
 
 class Project(models.Model):
     name = models.CharField(_('name'), max_length=255)
-    slug = models.SlugField(_('slug'))
+    slug = models.SlugField(_('slug'), unique=True)
     members = models.ManyToManyField(User, through=ProjectMember,
           verbose_name=_('members'))
 
@@ -154,3 +155,18 @@ class SyncState(models.Model):
 
     type = models.CharField(max_length=255, choices=TYPE_CHOICES, unique=True)
     last_sync = models.DateTimeField(_('Last Sync'))
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User)
+    language = models.CharField(_('Language'), max_length=255)
+    timezone = models.CharField(_('Timezone'), max_length=255)
+    jabber = models.CharField(_('Jabber'), max_length=255, blank=True)
+
+
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+
+post_save.connect(create_user_profile, sender=User)
