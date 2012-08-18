@@ -125,7 +125,10 @@ class DetailProjectView(MemberRequiredMixin, DetailView):
         context.update({
             'log_entries': Log.objects.filter(project=project) \
                                       .order_by('-when') \
-                                      .select_related('user')
+                                      .select_related('user'),
+            'updates': ProjectDependency.objects.filter(project=project) \
+                                                .filter(update__isnull=False) \
+                                                .count()
         })
         return context
 

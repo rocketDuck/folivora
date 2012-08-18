@@ -152,6 +152,15 @@ class ProjectDependency(models.Model):
         verbose_name = _('project dependency')
         verbose_name_plural = _('project dependencies')
 
+    @classmethod
+    def format_logentry(cls, log):
+        if log.action == 'update_available':
+            msg = ugettext(u'Version {version} of {package} available on PyPI '
+                           u'since {timesince}')
+            return format_html(msg, version=log.data['version'],
+                               package=log.package.name,
+                               timesince=timesince(log.when))
+
 
 class Log(models.Model):
     project = models.ForeignKey(Project, verbose_name=_('project'))
