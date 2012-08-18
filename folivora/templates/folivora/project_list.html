@@ -1,0 +1,9 @@
+{% extends 'page.html' %}
+{% load url from future %}
+{% load i18n %}
+{% block content %}
+<h1>{% trans 'Projects' %}<a href="{% url 'folivora_project_add' %}" class="btn btn-primary pull-right">{% trans 'Add project' %}</a></h1>
+{% for project in projects %}
+  {{ project }}
+{% endfor %}
+{% endblock content %}
