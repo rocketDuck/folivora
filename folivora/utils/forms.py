@@ -5,7 +5,7 @@ from django.forms.models import ModelFormMetaclass, ModelForm as BaseModelForm
 
 from floppyforms import widgets, forms
 
-from .jabber import may_be_valid_jabber
+from .jabber import is_valid_jid
 
 
 widget_map = {
@@ -46,7 +46,7 @@ class JabberField(fields.CharField):
         if not value:
             return
         value = value.strip()
-        if not may_be_valid_jabber(value):
+        if not is_valid_jid(value):
             raise ValidationError(_(u'The entered Jabber address is invalid. '
                 u'Please check your input.'))
         return value
