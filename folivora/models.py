@@ -107,6 +107,7 @@ class ProjectMember(models.Model):
     class Meta:
         verbose_name = _('project member')
         verbose_name_plural = _('project members')
+        unique_together = ("project", "user")
 
 
 class Project(models.Model):
