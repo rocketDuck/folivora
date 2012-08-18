@@ -1,0 +1,18 @@
+{% extends 'page.html' %}
+{% load floppyforms %}
+{% load i18n %}
+{% block content %}
+<form class="form-horizontal" action="" method="post">
+  {% csrf_token %}
+  {% form form using 'floppyforms/layouts/bootstrap.html' %}
+  <table class="table table-striped table-border">
+  {% for dep in project.dependencies.all %}
+    <tr><td>||{{ dep }}</td></tr>
+  {% endfor %}
+  </table>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">{% trans 'Update project' %}</button>
+    <button class="btn" type="reset">{% trans 'Cancel' %}</button>
+  </div>
+</form>
+{% endblock content %}
