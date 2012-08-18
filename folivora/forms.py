@@ -18,7 +18,7 @@ TIMEZONES = pytz.common_timezones
 
 
 class AddProjectForm(ModelForm):
-    requirements = forms.FileField(ugettext_lazy('requirements.txt'))
+    requirements = forms.FileField(required=False)
 
     class Meta:
         model = Project
@@ -30,6 +30,8 @@ class AddProjectForm(ModelForm):
 
     def clean_requirements(self):
         data = self.cleaned_data['requirements']
+        if data is None:
+            return []
 
         packages, missing = parse_requirements(data)
 
