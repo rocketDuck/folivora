@@ -74,9 +74,19 @@ class UpdateUserProfileForm(ModelForm):
     timezone = forms.ChoiceField(label=ugettext_lazy('Timezone'), required=True,
                                  choices=zip(TIMEZONES, TIMEZONES))
     jabber = JabberField(required=False)
+    email = forms.EmailField(required=True)
+
     class Meta:
         model = UserProfile
-        exclude = ('user',)
+        fields = ('email', 'jabber', 'language', 'timezone')
+
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get('instance', None)
+        if instance is not None:
+            initial = kwargs.setdefault('initial', {})
+            initial['email'] = instance.user.email
+
+        super(UpdateUserProfileForm, self).__init__(*args, **kwargs)
 
 
 class ProjectMemberForm(ModelForm):

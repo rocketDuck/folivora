@@ -176,7 +176,10 @@ class UpdateUserProfileView(LoginRequiredMixin, UpdateView):
         timezone = form.cleaned_data['timezone']
         if timezone:
             self.request.session['django_timezone'] = timezone
-        return super(UpdateUserProfileView, self).form_valid(form)
+        response = super(UpdateUserProfileView, self).form_valid(form)
+        self.object.user.email = form.cleaned_data['email']
+        self.object.user.save()
+        return response
 
     def get_object(self, queryset=None):
         return self.request.user.get_profile()
