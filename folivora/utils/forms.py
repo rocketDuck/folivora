@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+    folivora.utils.forms
+    ~~~~~~~~~~~~~~~~~~~~
+
+    Form related utilities.
+"""
 from django.db import models
 from django.utils.translation import ugettext as _
 from django.forms import ValidationError, fields
@@ -18,6 +25,12 @@ widget_map = {
 
 
 class FloppyFormsModelMetaclass(ModelFormMetaclass):
+    """Metaclass for floppyforms powered model forms.
+
+    This meta class assigns widget from `floppyforms.widgets` to the form so
+    users don't have to manually override every widget to get some floppyforms
+    goodness.
+    """
     def __new__(cls, name, bases, attrs):
         if BaseModelForm not in bases and 'Meta' in attrs:
             meta = attrs['Meta']
@@ -38,6 +51,7 @@ class FloppyFormsModelMetaclass(ModelFormMetaclass):
 
 
 class ModelForm(forms.LayoutRenderer, BaseModelForm):
+    """Model form which does incorporate floppyforms layout renderer"""
     __metaclass__ = FloppyFormsModelMetaclass
 
 

@@ -11,9 +11,10 @@ import datetime
 import pytz
 from celery import task
 from django.utils import timezone
-from folivora.models import SyncState, Package, PackageVersion, \
-    ProjectDependency, Log, Project
+from folivora.models import (SyncState, Package, PackageVersion,
+    ProjectDependency, Log, Project)
 from folivora.utils.pypi import CheeseShop
+from folivora.utils import get_model_type
 
 
 #TODO: send notifications
@@ -58,11 +59,15 @@ def sync_with_changelog():
                 pkg.versions.add(update)
                 ProjectDependency.objects.filter(package=pkg) \
                                          .update(update=update)
-            affected_projects = Project.objects.filter(dependencies__package=pkg).all()
+            affected_projects = Project.objects.filter(dependencies__package=pkg) \
+                                               .values_list('id', flat=True)
+            log_entries = []
             for project in affected_projects:
                 # Add log entry for new package release
-                project.create_logentry(package=pkg,
-                                        when=timezone.now(),
-                                        action='new_release',
-                                        type=Package,
-                                        version=version)
+                log = Log(project_id=project,
+                          package=pkg,
+                          action='new_release',
+                          type=get_model_type(Package),
+                          data={'version': version})
+                log_entries.append(log)
+            Log.objects.bulk_create(log_entries)

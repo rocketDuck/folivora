@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import time
 import urlparse
 import datetime
@@ -8,15 +9,17 @@ from django.db import models
 from django.db.models.loading import get_model
 from django.db.models.signals import post_save
 from django.core.urlresolvers import reverse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _, ugettext
+from django.utils.timesince import timesince
 from django.utils.timezone import make_aware, now
 
 from django.contrib.auth.models import User
 
 from django_orm.postgresql import hstore
 
-from folivora.utils import get_model_type
-from folivora.utils.pypi import DEFAULT_SERVER, CheeseShop
+from .utils import get_model_type
+from .utils.pypi import DEFAULT_SERVER, CheeseShop
+from .utils.html import format_html
 
 
 PROVIDES = ('pypi',)
@@ -130,7 +133,11 @@ class Project(models.Model):
 
     @classmethod
     def format_logentry(cls, log):
-        return "HI"
+        if log.action == 'add':
+            msg = ugettext(u'{user} created project “{name}” {timesince} ago')
+            return format_html(msg, user=log.user.username,
+                               name=log.data['name'],
+                               timesince=timesince(log.when))
 
 
 class ProjectDependency(models.Model):
