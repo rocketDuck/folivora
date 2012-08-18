@@ -1,6 +1,7 @@
 import urlparse
 
 from django.db import models
+from django.db.models.signals import post_save
 from django.utils.translation import ugettext_lazy as _
 
 from django.contrib.auth.models import User
@@ -128,3 +129,18 @@ class SyncState(models.Model):
 
     type = models.CharField(max_length=255, choices=TYPE_CHOICES, unique=True)
     last_sync = models.DateTimeField(_('Last Sync'))
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User)
+    language = models.CharField(_('Language'), max_length=255)
+    timezone = models.CharField(_('Timezone'), max_length=255)
+    jabber = models.CharField(_('Jabber'), max_length=255, blank=True)
+
+
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+
+post_save.connect(create_user_profile, sender=User)
