@@ -2,3 +2,6 @@ Django==1.4.1
 dj-database-url==0.2.1
 psycopg2==2.4.5
 wsgiref==0.1.2
+gunicorn==0.14.6
+South==0.7.5
+django-secure==0.1.2
