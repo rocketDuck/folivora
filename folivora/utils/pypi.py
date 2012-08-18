@@ -14,12 +14,12 @@ def get_seconds(hours):
     return int(time.time() - (60 * 60) * hours)
 
 
-XML_RPC_SERVER = 'http://pypi.python.org/pypi'
+DEFAULT_SERVER = 'http://pypi.python.org/pypi/'
 
 
 class CheeseShop(object):
 
-    def __init__(self, server=XML_RPC_SERVER):
+    def __init__(self, server=DEFAULT_SERVER):
         self.xmlrpc = xmlrpclib.Server(server)
 
     def get_package_versions(self, package_name):
@@ -58,3 +58,14 @@ class CheeseShop(object):
         :param version: Version of the package.
         """
         return self.xmlrpc.release_urls(package_name, version)
+
+    def get_release_data(self, package_name, version=None):
+        """Query for specific release data.
+
+        :param package_name: Name of the package.
+        :param version: Version to query the data. If `None`, it's latest
+                        version will be used.
+        """
+        if version is None:
+            version = self.get_package_versions(package_name)[-1]
+        return self.xmlrpc.release_data(package_name, version)
