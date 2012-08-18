@@ -143,10 +143,8 @@ class CreateProjectMemberView(LoginRequiredMixin, TemplateView):
             project_member.project = Project.objects.get(slug=self.kwargs['slug'])
             project_member.state = ProjectMember.MEMBER
             project_member.save()
-            member_form = ProjectMemberForm(instance=project_member)
-            new_row = render_to_string('folivora/project_edit_member_row.html', {
-                'f': member_form})
-            context = {'new_row': new_row}
+            context = {'id': project_member.id,
+                       'username': project_member.user.username}
         else:
             context = {'error': json.dumps(form.errors)}
         return HttpResponse(json.dumps(context))
