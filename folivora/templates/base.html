@@ -16,7 +16,7 @@
           <ul class="nav">
             <li><a href="{% url 'folivora_index' %}"><i class="icon-home"></i> {% trans 'Dashboard' %}</a></li>
             <li><a href="{% url 'folivora_project_list' %}"><i class="icon-beaker"></i> {% trans 'Projects' %}</a></li>
-            <li><a href=""><i class="icon-cog"></i> {% trans 'Preferences' %}</a></li>
+            <li><a href="{% url 'folivora_profile_edit' %}"><i class="icon-cog"></i> {% trans 'Preferences' %}</a></li>
           </ul>
           <ul class="nav pull-right">
           {% if not user.is_authenticated %}
