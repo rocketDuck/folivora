@@ -146,11 +146,17 @@ class CreateProjectMemberView(LoginRequiredMixin, TemplateView):
             project_member = form.save(commit=False)
             project_member.project = project
             project_member.state = ProjectMember.MEMBER
-            project_member.save()
-            context = {'id': project_member.id,
-                       'username': project_member.user.username}
+            user = project_member.user
+            if (ProjectMember.objects.filter(project=project)
+                                     .filter(user=user).exists()):
+                context = {'error': _('"%s" is allready a member of this project'
+                                       % user)}
+            else:
+                project_member.save()
+                context = {'id': project_member.id,
+                           'username': project_member.user.username}
         else:
-            context = {'error': json.dumps(form.errors)}
+            context = {'error': form.errors}
         return HttpResponse(json.dumps(context))
 
 
