@@ -156,3 +156,5 @@ djcelery.setup_loader()
 
 # Use django database
 BROKER_URL = 'django://'
+
+CELERY_TIMEZONE = 'UTC'
