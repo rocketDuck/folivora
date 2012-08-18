@@ -3,7 +3,7 @@ import mock
 from datetime import datetime
 from django.test import TestCase
 from django.utils.timezone import make_aware
-from folivora.models import Package, PackageVersion
+from folivora.models import Package, PackageVersion, Project, ProjectDependency
 from folivora import tasks
 
 
@@ -48,6 +48,14 @@ class TestPackageVersionModel(TestCase):
 
 class TestChangelogSync(TestCase):
 
+    def setUp(self):
+        pkg = Package.create_with_provider_url('pmxbot')
+        project = Project.objects.create(name='test', slug='test')
+        dependency = ProjectDependency.objects.create(
+            project=project,
+            package=pkg,
+            version='1101.8.0')
+
     @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
     def test_new_release_sync(self):
         result = tasks.sync_with_changelog.apply(throw=True)
@@ -56,3 +64,6 @@ class TestChangelogSync(TestCase):
         self.assertEqual(pkg.name, 'pmxbot')
         self.assertEqual(pkg.provider, 'pypi')
         self.assertEqual(pkg.versions.count(), 1)
+
+        dep = ProjectDependency.objects.get(package__name='pmxbot', version='1101.8.0', project__name='test')
+        self.assertEqual(dep.update.version, '1101.8.1')
