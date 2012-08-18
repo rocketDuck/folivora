@@ -1,0 +1,6 @@
+{% extends 'page.html' %}
+{% load url from future %}
+{% load i18n %}
+{% block content %}
+<h1>{{ project.name }}<a href="{% url 'folivora_project_update' project.slug %}" class="btn btn-primary pull-right">{% trans 'Edit project' %}</a></h1>
+{% endblock content %}

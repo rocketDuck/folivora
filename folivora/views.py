@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.translation import ugettext as _
 from django.views.generic.base import TemplateView
+from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
 
@@ -76,8 +77,8 @@ class UpdateProjectView(LoginRequiredMixin, TemplateView):
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
-        context = self.get_context_data(**kwargs)
-        forms = [v for k,v in context.items() if k.endswith('form')]
+        ctx = self.get_context_data(**kwargs)
+        forms = [ctx['dep_form'], ctx['member_form']]
         if all(map(lambda f: f.is_valid, forms)):
             for form in forms:
                 form.save()
@@ -86,7 +87,7 @@ class UpdateProjectView(LoginRequiredMixin, TemplateView):
                 'successfully.').format(name=object.name))
             return HttpResponseRedirect(reverse('folivora_project_update',
                                                 kwargs={'slug': object.slug}))
-        return self.render_to_response(context)
+        return self.render_to_response(ctx)
 
 
 project_update = UpdateProjectView.as_view()
@@ -106,7 +107,12 @@ class DeleteProjectView(LoginRequiredMixin, DeleteView):
 
 project_delete = DeleteProjectView.as_view()
 
-project_detail = lambda x, slug: render(x, 'folivora/index.html')
+
+class DetailProjectView(LoginRequiredMixin, DetailView):
+    model = Project
+
+
+project_detail = DetailProjectView.as_view()
 
 
 class UpdateUserProfileView(LoginRequiredMixin, UpdateView):
