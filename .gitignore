@@ -25,6 +25,7 @@ pip-log.txt
 .coverage
 .tox
 nosetests.xml
+htmlcov
 
 #Translations
 *.mo
@@ -36,4 +37,3 @@ nosetests.xml
 
 .sass-cache
 _build
-htmlcov

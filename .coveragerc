@@ -1,0 +1,5 @@
+[run]
+source=folivora
+omit=folivora/migrations/*, folivora/tests.py
+[report]
+exclude_lines = def __unicode__
