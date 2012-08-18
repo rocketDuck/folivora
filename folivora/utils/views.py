@@ -9,7 +9,7 @@ from django.http import HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
-from ..models import Project
+from ..models import Project, ProjectMember
 
 
 class SortListMixin(object):
@@ -62,10 +62,18 @@ class MemberRequiredMixin(object):
     project is taken from the slug in the URL.
 
     Additionally it checks if the user is authenticated.
+
+    Set allow_only_owner True, to grant access only to owners
     """
+    allow_only_owner = False
+
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         slug = kwargs['slug']
-        if not Project.objects.filter(members=request.user).exists():
+        project = Project.objects.get(slug=slug)
+        query = ProjectMember.objects.filter(user=request.user, project=project)
+        if self.allow_only_owner:
+            query = query.filter(state=ProjectMember.OWNER)
+        if not query.exists():
             return HttpResponseForbidden('403 - Forbidden')
         return super(MemberRequiredMixin, self).dispatch(request, *args, **kwargs)

@@ -63,6 +63,8 @@ class UpdateProjectView(MemberRequiredMixin, TemplateView):
     member_form_class = inlineformset_factory(Project, ProjectMember, extra=0,
         form=ProjectMemberForm)
 
+    allow_only_owner = True
+
     def get_context_data(self, **kwargs):
         context = super(UpdateProjectView, self).get_context_data(**kwargs)
         data = self.request.POST if self.request.method == 'POST' else None
@@ -104,6 +106,7 @@ project_update = UpdateProjectView.as_view()
 class DeleteProjectView(MemberRequiredMixin, DeleteView):
     model = Project
     success_url = reverse_lazy('folivora_project_list')
+    allow_only_owner = True
 
     def delete(self, *args, **kwargs):
         object = self.get_object()
@@ -138,9 +141,10 @@ class DetailProjectView(MemberRequiredMixin, DetailView):
 project_detail = DetailProjectView.as_view()
 
 
-class CreateProjectMemberView(LoginRequiredMixin, TemplateView):
+class CreateProjectMemberView(MemberRequiredMixin, TemplateView):
     model = ProjectMember
     form_class = CreateProjectMemberForm
+    allow_only_owner = True
 
     def post(self, request, *args, **kwargs):
         project = Project.objects.get(slug=kwargs['slug'])
@@ -166,7 +170,7 @@ class CreateProjectMemberView(LoginRequiredMixin, TemplateView):
 project_add_member = CreateProjectMemberView.as_view()
 
 
-class ResignProjectView(LoginRequiredMixin, DeleteView):
+class ResignProjectView(MemberRequiredMixin, DeleteView):
     success_url = reverse_lazy('folivora_project_list')
 
     def get_object(self, queryset=None):

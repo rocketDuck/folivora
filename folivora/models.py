@@ -132,6 +132,10 @@ class Project(models.Model):
         Log.objects.create(project=self, type=type,
                            action=action, data=kwargs, user=user)
 
+    @property
+    def owners(self):
+        return self.members.filter(projectmember__state=ProjectMember.OWNER)
+
 
 class ProjectDependency(models.Model):
     project = models.ForeignKey(Project, verbose_name=_('project'),
