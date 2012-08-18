@@ -10,12 +10,13 @@ import time
 import datetime
 import pytz
 from celery import task
-from django.utils.timezone import make_aware
+from django.utils import timezone
 from folivora.models import SyncState, Package, PackageVersion, \
-    ProjectDependency
+    ProjectDependency, Log, Project
 from folivora.utils.pypi import CheeseShop
 
 
+#TODO: send notifications
 @task
 def sync_with_changelog():
     """Syncronize with pypi changelog.
@@ -33,10 +34,9 @@ def sync_with_changelog():
         create				- Create a new package
         update %(type)s                 - Update some detailed classifiers
     """
-    default_last_sync = make_aware(datetime.datetime.utcnow(), pytz.UTC)
     state, created = SyncState.objects.get_or_create(
         type=SyncState.CHANGELOG,
-        defaults={'last_sync': default_last_sync})
+        defaults={'last_sync': timezone.now()})
 
     epoch = int(time.mktime(state.last_sync.timetuple()))
 
@@ -50,12 +50,20 @@ def sync_with_changelog():
             except Package.DoesNotExist:
                 pkg = Package.create_with_provider_url(package)
 
-            release_date = make_aware(datetime.datetime.fromtimestamp(stamp),
-                                      pytz.UTC)
+            release_date = timezone.make_aware(datetime.datetime.fromtimestamp(stamp),
+                                               pytz.UTC)
             if not PackageVersion.objects.filter(version=version).exists():
-                print "update %s with version %s" % (package, version)
                 update = PackageVersion(version=version,
                                         release_date=release_date)
                 pkg.versions.add(update)
                 ProjectDependency.objects.filter(package=pkg) \
                                          .update(update=update)
+            affected_projects = Project.objects.filter(dependencies__package=pkg).all()
+            for project in affected_projects:
+                # Add log entry for new package release
+                Log.objects.create(project=project,
+                                   package=pkg,
+                                   when=timezone.now(),
+                                   action='new_release',
+                                   type='folivora.package',
+                                   data={'version': version})
