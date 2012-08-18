@@ -96,6 +96,7 @@ class ProjectMember(models.Model):
     project = models.ForeignKey('Project', verbose_name=_('project'))
     user = models.ForeignKey(User, verbose_name=_('user'))
     state = models.IntegerField(_('state'), choices=STATE_CHOICES)
+    mail = models.EmailField(_('EMail'), max_length=254, null=True)
 
     class Meta:
         verbose_name = _('project member')
