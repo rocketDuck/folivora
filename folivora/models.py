@@ -96,8 +96,8 @@ class ProjectMember(models.Model):
     OWNER = 0
     MEMBER = 1
     STATE_CHOICES = (
-        (OWNER, _('owner')),
-        (MEMBER, _('member'))
+        (OWNER, _('Owner')),
+        (MEMBER, _('Member'))
     )
 
     project = models.ForeignKey('Project', verbose_name=_('project'))
