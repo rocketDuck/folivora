@@ -8,6 +8,7 @@ from django.utils.timezone import make_aware
 from folivora.models import Package, PackageVersion
 from folivora.utils.pypi import CheeseShop, DEFAULT_SERVER
 
+
 SERVER = CheeseShop(DEFAULT_SERVER)
 
 
