@@ -15,6 +15,7 @@ from django.contrib.auth.models import User
 
 from django_orm.postgresql import hstore
 
+from folivora.utils import get_model_type
 from folivora.utils.pypi import DEFAULT_SERVER, CheeseShop
 
 
@@ -119,11 +120,12 @@ class Project(models.Model):
     def get_absolute_url(self):
         return 'folivora_project_detail', (), {'slug': self.slug}
 
-    def create_logentry(self, action, user, **kwargs):
-        type = kwargs.pop('type', 'folivora.project')
+    def create_logentry(self, action, user=None, **kwargs):
+        type = kwargs.pop('type', self.__class__)
+        assert issubclass(type, models.Model)
         when = kwargs.pop('when', now())
         package = kwargs.pop('package', None)
-        Log.objects.create(project=self, type=type,
+        Log.objects.create(project=self, type=get_model_type(type),
                            action=action, data=kwargs, user=user)
 
     @classmethod

@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from folivora.models import Package, PackageVersion, Project, Log, \
     ProjectDependency
 from folivora import tasks
+from folivora.utils import get_model_type
 
 
 class CheesyMock(object):
@@ -128,11 +129,18 @@ class TestProjectModel(TestCase):
 
     def test_create_logentry_with_data(self):
         self.project.create_logentry('shoutout', self.user,
-                                     type='folivora.message',
+                                     type=Log,
                                      message='Hey everybody!')
         log = Log.objects.get(project=self.project, action='shoutout')
         self.assertEqual(log.project, self.project)
-        self.assertEqual(log.type, 'folivora.message')
+        self.assertEqual(log.type, 'folivora.log')
         self.assertEqual(log.package, None)
         self.assertEqual(log.user, self.user)
         self.assertEqual(log.data['message'], 'Hey everybody!')
+
+
+class TestUtils(TestCase):
+
+    def test_get_model_type(self):
+        self.assertEqual(get_model_type(Package), 'folivora.package')
+        self.assertEqual(get_model_type(User), 'auth.user')
