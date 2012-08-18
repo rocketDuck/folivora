@@ -140,6 +140,10 @@ class ProjectDependency(models.Model):
     update = models.ForeignKey(PackageVersion, verbose_name=_('update'),
                                null=True, blank=True, default=None)
 
+    @property
+    def update_available(self):
+        return self.update_id is not None
+
     class Meta:
         verbose_name = _('project dependency')
         verbose_name_plural = _('project dependencies')

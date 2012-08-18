@@ -1,4 +1,4 @@
-{% extends 'page.html' %}
+{% extends 'fluid.html' %}
 {% load url from future %}
 {% load i18n %}
 {% block headline %}{{ project.name }}
@@ -6,7 +6,30 @@
   <a href="{% url 'folivora_project_update' project.slug %}" class="btn btn-primary pull-right">{% trans 'Edit project' %}</a>
 {% endblock headline %}
 {% block content %}
-{% for log in log_entries %}
-  <div class="well">{% include log.template %}</div>
-{% endfor %}
+<div class="row-fluid">
+  <div class="span9">
+  {% for log in log_entries %}
+    <div class="well">{% include log.template %}</div>
+  {% endfor %}
+  </div>
+  <div class="span3">
+  {% regroup deps|dictsortreversed:'update_available' by update_available as dep_list %}
+  {% for dep in dep_list %}
+    <div class="well">
+      {% if dep.grouper %}
+        <h4>{% trans 'Upgrades available for:' %}</h4>
+      {% else %}
+        <h4>{% trans 'Other packages' %}</h4>
+      {% endif %}
+      <ul>
+        {% for d in dep.list %}
+        <li>
+          <a href="{{ d.package.url }}">{{ d.package.name }} @ {{ d.version }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endfor %}
+  </div>
+</div>
 {% endblock content %}
