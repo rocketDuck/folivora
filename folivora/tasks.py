@@ -11,7 +11,7 @@ import datetime
 import pytz
 from celery import task
 from django.utils import timezone
-from (folivora.models import SyncState, Package, PackageVersion,
+from folivora.models import (SyncState, Package, PackageVersion,
     ProjectDependency, Log, Project)
 from folivora.utils.pypi import CheeseShop
 
