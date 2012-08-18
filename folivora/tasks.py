@@ -99,7 +99,7 @@ def sync_with_changelog():
 
 
 @task
-def sync_new_project(project_pk):
+def sync_project(project_pk):
     project = Project.objects.get(pk=project_pk)
 
     for dependency in project.dependencies.all():

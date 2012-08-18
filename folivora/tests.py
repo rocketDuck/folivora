@@ -144,7 +144,7 @@ class TestChangelogSync(TestCase):
                          1)
 
 
-class TestSyncNewProjectTask(TestCase):
+class TestSyncProjectTask(TestCase):
 
     def setUp(self):
         pkg = Package.create_with_provider_url('pmxbot')
@@ -163,8 +163,8 @@ class TestSyncNewProjectTask(TestCase):
             package=pkg2,
             version='0.14.6')
 
-    def test_sync_new_project(self):
-        result = tasks.sync_new_project.apply(args=(self.project.pk,), throw=True)
+    def test_sync_project(self):
+        result = tasks.sync_project.apply(args=(self.project.pk,), throw=True)
         self.assertTrue(result.successful())
         dep = ProjectDependency.objects.get(project=self.project,
                                             package__name='pmxbot',
