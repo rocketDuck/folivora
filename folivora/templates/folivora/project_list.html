@@ -1,8 +1,8 @@
 {% extends 'page.html' %}
 {% load url from future %}
 {% load i18n %}
+{% block headline %}{% trans 'Projects' %}<a href="{% url 'folivora_project_add' %}" class="btn btn-primary pull-right">{% trans 'Add project' %}</a>{% endblock %}
 {% block content %}
-<h1>{% trans 'Projects' %}<a href="{% url 'folivora_project_add' %}" class="btn btn-primary pull-right">{% trans 'Add project' %}</a></h1>
 <table class="table table-bordered table-striped">
   <thead>
     <tr>

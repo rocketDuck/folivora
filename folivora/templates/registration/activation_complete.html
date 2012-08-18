@@ -1,7 +1,9 @@
 {% extends 'page.html' %}
-
+{% load url from future %}
 {% load i18n %}
 
+{% block headline %}{% trans 'Account sucessfully activated' %}{% endblock %}
 {% block content %}
-{% blocktrans %}Account sucessfully activated{% endblocktrans %}
+{% url 'folivora_project_add' as url %}
+{% blocktrans %}Click <a href="{{ url }}">here</a> to create a new project{% endblocktrans %}
 {% endblock content %}

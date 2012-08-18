@@ -1,8 +1,8 @@
 {% extends 'page.html' %}
 {% load url from future %}
 {% load i18n %}
+{% block headline %}{% trans 'Confirm deletion' %}{% endblock headline %}
 {% block content %}
-<h1>{% trans 'Confirm deletion' %}</h1>
 {% blocktrans with name=object.name %}Do you really want delete the project “{{ name }}”?{% endblocktrans %}
 <form method="post" action="">
   {% csrf_token %}

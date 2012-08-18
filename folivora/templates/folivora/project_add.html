@@ -1,6 +1,7 @@
 {% extends 'page.html' %}
 {% load floppyforms %}
 {% load i18n %}
+{% block headline %}{% trans 'Create project' %}{% endblock %}
 {% block content %}
 <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
   {% csrf_token %}

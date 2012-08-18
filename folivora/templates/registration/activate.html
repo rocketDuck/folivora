@@ -2,6 +2,7 @@
 
 {% load i18n %}
 
+{% block headline %}{% trans 'Account activation failed.' %}{% endblock %}
 {% block content %}
-{% blocktrans %}Account activation faild. Please check your activation key:{% endblocktrans %} {{ activation_key }}
+{% blocktrans %}Account activation faild. Please check your activation key: {{ activation_key }}{% endblocktrans %}
 {% endblock content %}
