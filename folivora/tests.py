@@ -14,7 +14,8 @@ from django.contrib.auth.models import User
 from .models import (Package, PackageVersion, Project, Log,
     ProjectDependency)
 from . import tasks
-from .utils import get_model_type
+from .utils import get_model_type, parse_requirements
+from .utils.jabber import is_valid_jid
 
 
 class CheesyMock(object):
@@ -274,3 +275,15 @@ class TestUtils(TestCase):
         self.assertEqual(get_model_type(Package), 'folivora.package')
         self.assertEqual(get_model_type(User), 'auth.user')
 
+    def test_jid_verification(self):
+        self.assertTrue(is_valid_jid('apollo13@example.com'))
+        self.assertTrue(is_valid_jid('apollo13@example.com/res'))
+        self.assertFalse(is_valid_jid('example.com'))
+
+    def test_parse_requirements(self):
+        packages, missing = parse_requirements(ContentFile(VALID_REQUIREMENTS))
+        self.assertEqual(packages, {'Sphinx': '1.10', 'Django': '1.4.1'})
+        self.assertFalse(missing)
+        packages, missing = parse_requirements(ContentFile(BROKEN_REQUIREMENTS))
+        self.assertEqual(packages, {'Sphinx': '1.10', 'Django': '1.4.1'})
+        self.assertEqual(missing, ['_--.>=asdhasjk ,,, [borked]\n'])
