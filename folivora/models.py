@@ -134,6 +134,8 @@ class ProjectDependency(models.Model):
 
 class Log(models.Model):
     project = models.ForeignKey(Project, verbose_name=_('project'))
+    package = models.ForeignKey(Package, verbose_name=_('package'),
+                                null=True, blank=True, default=None)
     when = models.DateTimeField(_('when'))
     action = models.CharField(_('action'), max_length=255)
     type = models.CharField(_('type'), max_length=255)
