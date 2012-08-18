@@ -181,7 +181,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User)
     language = models.CharField(_('Language'), max_length=255,
                                 choices=settings.LANGUAGES, blank=True)
-    timezone = models.CharField(_('Timezone'), max_length=255)
+    timezone = models.CharField(_('Timezone'), max_length=255, default='UTC')
     jabber = models.CharField(_('JID'), max_length=255, blank=True)
 
     def get_absolute_url(self):
@@ -200,5 +200,7 @@ def set_user_lang(sender, request, user, **kwargs):
         profile = user.get_profile()
         if profile.language:
             request.session['django_language'] = profile.language
+        if profile.timezone:
+            request.session['django_timezone'] = profile.timezone
     except UserProfile.DoesNotExist:
         pass

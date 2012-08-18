@@ -3,6 +3,10 @@
 {% load i18n %}
 {% block headline %}{% trans 'Your profile' %}{% endblock %}
 {% block content %}
+<!--
+  Current time: {% now 'DATETIME_FORMAT' %}
+  Translations are working: {% trans 'password' %}
+-->
 <form class="form-horizontal" action="" method="post">
   {% csrf_token %}
   {% form form using 'floppyforms/layouts/bootstrap.html' %}
