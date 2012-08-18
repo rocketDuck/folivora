@@ -19,7 +19,7 @@ def sync():
 
     packages = []
     for name in package_names:
-        print "Query and store %s" % name
+        #print "Query and store %s" % name
         url = urlparse.urljoin(DEFAULT_SERVER, name)
         packages.append(Package(name=name, url=url, provider='pypi'))
     print "sync all packages to disk..."
