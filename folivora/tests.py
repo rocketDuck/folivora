@@ -2,7 +2,7 @@ import pytz
 from datetime import datetime
 from django.test import TestCase
 from django.utils.timezone import make_aware
-from folivora.core.models import Package, PackageVersion
+from folivora.models import Package, PackageVersion
 
 
 class TestPackageModel(TestCase):
@@ -26,7 +26,7 @@ class TestPackageVersionModel(TestCase):
         pkg = Package.objects.get(name='gunicorn')
         PackageVersion.objects.create(package=pkg,
                                       version='0.14.6',
-                                      release_date=datetime(2012, 7, 26, 23, 51, 18))
+                                      release_date=make_aware(datetime(2012, 7, 26, 23, 51, 18), pytz.UTC))
         vers = PackageVersion.objects.get(package__name='gunicorn',
                                           version='0.14.6')
         self.assertEqual(vers.package, pkg)
