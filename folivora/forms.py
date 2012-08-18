@@ -1,9 +1,13 @@
+import pytz
+
 from django import forms
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext as _, ugettext_lazy
 
 from .models import Project, UserProfile
 from .utils.forms import ModelForm
 from .utils.jabber import may_be_valid_jabber
+
+TIMEZONES = pytz.common_timezones
 
 
 class JabberField(forms.fields.CharField):
@@ -24,6 +28,8 @@ class AddProjectForm(ModelForm):
 
 
 class UpdateUserProfileForm(ModelForm):
+    timezone = forms.ChoiceField(label=ugettext_lazy('Timezone'), required=True,
+                                 choices=zip(TIMEZONES, TIMEZONES))
     jabber = JabberField()
     class Meta:
         model = UserProfile

@@ -6,6 +6,7 @@ import pytz
 
 from django.db import models
 from django.db.models.signals import post_save
+from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.utils.timezone import make_aware
 
@@ -162,6 +163,9 @@ class UserProfile(models.Model):
     language = models.CharField(_('Language'), max_length=255)
     timezone = models.CharField(_('Timezone'), max_length=255)
     jabber = models.CharField(_('Jabber'), max_length=255, blank=True)
+
+    def get_absolute_url(self):
+        return reverse('folivora_profile_edit')
 
 
 def create_user_profile(sender, instance, created, **kwargs):
