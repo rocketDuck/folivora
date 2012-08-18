@@ -77,3 +77,10 @@ def sync_with_changelog():
                                   action='new_release',
                                   type=get_model_type(Package),
                                   data={'version': version})
+        elif action == 'remove':
+            pkg = Package.objects.get(name=package)
+            log_affected_projects(pkg,
+                                  action='remove_package',
+                                  type=get_model_type(Package),
+                                  data={'package': package})
+            pkg.delete()

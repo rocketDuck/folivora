@@ -13,10 +13,11 @@ from folivora.utils import get_model_type
 class CheesyMock(object):
 
     def get_package_list(self):
-        return ['pmxbot']
+        return ['pmxbot', 'gunicorn']
 
     def get_changelog(self, hours, force=False):
-        return [['pmxbot', '1101.8.1', 1345259834, 'new release']]
+        return [['pmxbot', '1101.8.1', 1345259834, 'new release'],
+                ['gunicorn', '0.14.6', 1345259834, 'remove']]
 
     def get_release_urls(self, name, version):
         return [{'comment_text': '',
@@ -82,11 +83,16 @@ class TestChangelogSync(TestCase):
 
     def setUp(self):
         pkg = Package.create_with_provider_url('pmxbot')
+        pkg2 = Package.create_with_provider_url('gunicorn')
         self.project = Project.objects.create(name='test', slug='test')
         dependency = ProjectDependency.objects.create(
             project=self.project,
             package=pkg,
             version='1101.8.0')
+        dependency2 = ProjectDependency.objects.create(
+            project=self.project,
+            package=pkg2,
+            version='0.14.6')
 
     @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
     def test_new_release_sync(self):
@@ -109,6 +115,20 @@ class TestChangelogSync(TestCase):
         result = tasks.sync_with_changelog.apply(throw=True)
         self.assertTrue(result.successful())
         self.assertEqual(Log.objects.filter(project=self.project, action='new_release') \
+                                    .count(),
+                         1)
+
+    @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
+    def test_package_removal_sync(self):
+        result = tasks.sync_with_changelog.apply(throw=True)
+        self.assertTrue(result.successful())
+        self.assertRaises(Package.DoesNotExist, Package.objects.get, name='gunicorn')
+
+    @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
+    def test_package_removal_sync_log_creation(self):
+        result = tasks.sync_with_changelog.apply(throw=True)
+        self.assertTrue(result.successful())
+        self.assertEqual(Log.objects.filter(project=self.project, action='remove_package') \
                                     .count(),
                          1)
 
