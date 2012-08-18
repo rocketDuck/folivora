@@ -125,3 +125,14 @@ class TestProjectModel(TestCase):
         self.assertEqual(log.type, 'folivora.project')
         self.assertEqual(log.package, None)
         self.assertEqual(log.user, self.user)
+
+    def test_create_logentry_with_data(self):
+        self.project.create_logentry('shoutout', self.user,
+                                     type='folivora.message',
+                                     message='Hey everybody!')
+        log = Log.objects.get(project=self.project, action='shoutout')
+        self.assertEqual(log.project, self.project)
+        self.assertEqual(log.type, 'folivora.message')
+        self.assertEqual(log.package, None)
+        self.assertEqual(log.user, self.user)
+        self.assertEqual(log.data['message'], 'Hey everybody!')
