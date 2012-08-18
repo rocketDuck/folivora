@@ -6,4 +6,5 @@ gunicorn==0.14.6
 South==0.7.5
 django-secure==0.1.2
 pytz==2012d
+django-orm-extensions==3.0b3
 django-celery==3.0.6
