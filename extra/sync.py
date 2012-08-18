@@ -15,26 +15,13 @@ def sync():
     print 'Query package list'
     package_names = SERVER.get_package_list()
 
+    packages = []
     for name in package_names:
-        print 'Query and store history of %s' % name
-        url = SERVER.get_release_data(name).get('package_url',
-                                                urlparse.urljoin(DEFAULT_SERVER, name))
-        pkg, created = Package.objects.get_or_create(name=name, url=url, provider='pypi')
-
-        for version in SERVER.get_package_versions(name):
-            urls = SERVER.get_release_urls(name, version)
-            # It can happen that there are no releases, we simply
-            # ignore these versions yet.
-            if urls:
-                url = urls[0]
-            else:
-                continue
-            release_date = make_aware(
-                datetime.datetime.fromtimestamp(
-                    time.mktime(url['upload_time'].timetuple())),
-                pytz.UTC)
-            PackageVersion.objects.get_or_create(
-                package=pkg, version=version, release_date=release_date)
+        print "Query and store %s" % name
+        url = urlparse.urljoin(DEFAULT_SERVER, name)
+        packages.append(Package(name=name, url=url, provider='pypi'))
+    print "sync all packages to disk..."
+    Package.objects.bulk_create(packages)
 
 
 if __name__ == '__main__':
