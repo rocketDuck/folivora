@@ -87,7 +87,7 @@ class UpdateProjectView(MemberRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         ctx = self.get_context_data(**kwargs)
         forms = [ctx['dep_form'], ctx['member_form']]
-        if all(map(lambda f: f.is_valid, forms)):
+        if all(map(lambda f: f.is_valid(), forms)):
             for form in forms:
                 form.save()
             object = Project.objects.get(slug=kwargs['slug'])
@@ -149,7 +149,7 @@ class CreateProjectMemberView(LoginRequiredMixin, TemplateView):
             user = project_member.user
             if (ProjectMember.objects.filter(project=project)
                                      .filter(user=user).exists()):
-                context = {'error': _('"%s" is allready a member of this project'
+                context = {'error': _('"%s" is already a member of this project'
                                        % user)}
             else:
                 project_member.save()

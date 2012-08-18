@@ -2,6 +2,8 @@ $('#add_member_button').click(function() {
     $('#add_member').slideToggle();
 });
 
+$('#id_projectmember_set-__prefix__-state').removeAttr('required');
+
 $('#add_member form').ajaxForm({
     dataType: 'json',
     success: function(data) {
