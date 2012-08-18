@@ -5,3 +5,4 @@ wsgiref==0.1.2
 gunicorn==0.14.6
 South==0.7.5
 django-secure==0.1.2
+pytz==2012d
