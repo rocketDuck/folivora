@@ -56,12 +56,14 @@ class AddProjectForm(ModelForm):
     def save(self, commit=True):
         assert commit == True
         project = super(AddProjectForm, self).save(True)
+        project.create_logentry('add', self.user, name=project.name)
         ProjectMember.objects.create(user=self.user, state=ProjectMember.OWNER,
             project=project)
         deps = self.cleaned_data['requirements']
         for dep in deps:
             dep.project = project
         ProjectDependency.objects.bulk_create(deps)
+
         return project
 
 

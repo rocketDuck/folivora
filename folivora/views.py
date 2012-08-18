@@ -20,8 +20,9 @@ from braces.views import LoginRequiredMixin, UserFormKwargsMixin
 
 from .forms import (AddProjectForm, UpdateUserProfileForm,
     ProjectDependencyForm, ProjectMemberForm, CreateProjectMemberForm)
-from .models import Project, UserProfile, ProjectDependency, ProjectMember
-from .utils.views import SortListMixin
+from .models import (Project, UserProfile, ProjectDependency, ProjectMember,
+    Log)
+from .utils.views import SortListMixin, MemberRequiredMixin
 
 
 folivora_index = TemplateView.as_view(template_name='folivora/index.html')
@@ -34,8 +35,8 @@ class ListProjectView(LoginRequiredMixin, SortListMixin, ListView):
     default_order = ('name',)
 
     def get_queryset(self):
-#        return Project.objects.filter(members=self.request.user)
-        return super(ListProjectView, self).get_queryset()
+        qs = super(ListProjectView, self).get_queryset()
+        return qs.filter(members=self.request.user)
 
 
 project_list = ListProjectView.as_view()
@@ -50,7 +51,7 @@ class AddProjectView(LoginRequiredMixin, UserFormKwargsMixin, CreateView):
 project_add = AddProjectView.as_view()
 
 
-class UpdateProjectView(LoginRequiredMixin, TemplateView):
+class UpdateProjectView(MemberRequiredMixin, TemplateView):
     model = Project
     template_name = 'folivora/project_update.html'
 
@@ -100,7 +101,7 @@ class UpdateProjectView(LoginRequiredMixin, TemplateView):
 project_update = UpdateProjectView.as_view()
 
 
-class DeleteProjectView(LoginRequiredMixin, DeleteView):
+class DeleteProjectView(MemberRequiredMixin, DeleteView):
     model = Project
     success_url = reverse_lazy('folivora_project_list')
 
@@ -115,9 +116,18 @@ class DeleteProjectView(LoginRequiredMixin, DeleteView):
 project_delete = DeleteProjectView.as_view()
 
 
-class DetailProjectView(LoginRequiredMixin, DetailView):
+class DetailProjectView(MemberRequiredMixin, DetailView):
     model = Project
 
+    def get_context_data(self, **kwargs):
+        context = super(DetailProjectView, self).get_context_data(**kwargs)
+        project = context['object']
+        context.update({
+            'log_entries': Log.objects.filter(project=project) \
+                                      .order_by('-when') \
+                                      .select_related('user')
+        })
+        return context
 
 project_detail = DetailProjectView.as_view()
 
@@ -147,6 +157,7 @@ project_add_member = CreateProjectMemberView.as_view()
 
 class UpdateUserProfileView(LoginRequiredMixin, UpdateView):
     form_class = UpdateUserProfileForm
+
     def get_object(self, queryset=None):
         return self.request.user.get_profile()
 

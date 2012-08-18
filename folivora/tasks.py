@@ -11,9 +11,23 @@ import datetime
 import pytz
 from celery import task
 from django.utils import timezone
-from folivora.models import SyncState, Package, PackageVersion, \
-    ProjectDependency, Log, Project
-from folivora.utils.pypi import CheeseShop
+
+from .models import (SyncState, Package, PackageVersion,
+    ProjectDependency, Log, Project)
+from .utils import get_model_type
+from .utils.pypi import CheeseShop
+
+
+def log_affected_projects(pkg, **kwargs):
+    affected_projects = Project.objects.filter(dependencies__package=pkg) \
+                                       .values_list('id', flat=True)
+
+    log_entries = []
+    for project in affected_projects:
+        # Add log entry for new package release
+        log = Log(project_id=project, **kwargs)
+        log_entries.append(log)
+    Log.objects.bulk_create(log_entries)
 
 
 #TODO: send notifications
@@ -58,12 +72,26 @@ def sync_with_changelog():
                 pkg.versions.add(update)
                 ProjectDependency.objects.filter(package=pkg) \
                                          .update(update=update)
-            affected_projects = Project.objects.filter(dependencies__package=pkg).all()
-            for project in affected_projects:
-                # Add log entry for new package release
-                Log.objects.create(project=project,
-                                   package=pkg,
-                                   when=timezone.now(),
-                                   action='new_release',
-                                   type='folivora.package',
-                                   data={'version': version})
+
+            log_affected_projects(pkg, package=pkg,
+                                  action='new_release',
+                                  type=get_model_type(Package),
+                                  data={'version': version})
+        elif action == 'remove':
+            # We only clear versions and set the recent updated version
+            # on every project dependency to NULL. This way we can ensure
+            # stability on ProjectDependency.
+            pkg = Package.objects.get(name=package)
+            if version is None:
+                pkg.versions.delete()
+            ProjectDependency.objects.filter(package=pkg) \
+                                     .update(update=None)
+            log_affected_projects(pkg,
+                                  action='remove_package',
+                                  type=get_model_type(Package),
+                                  data={'package': package})
+
+        elif action == 'create':
+            #TODO: do we need to create a log or handle any other special things?
+            #      Looks damn empty :-)
+            Package.objects.create_with_provider(package)
