@@ -97,7 +97,7 @@ class ProjectMember(models.Model):
     user = models.ForeignKey(User, verbose_name=_('user'))
     state = models.IntegerField(_('state'), choices=STATE_CHOICES)
     mail = models.EmailField(_('Email'), max_length=255, null=True)
-    jabber = models.CharField(_('Jabber'), max_length=255, blank=True)
+    jabber = models.CharField(_('Jabber'), max_length=255, null=True)
 
     class Meta:
         verbose_name = _('project member')
