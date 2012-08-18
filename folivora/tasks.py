@@ -78,9 +78,20 @@ def sync_with_changelog():
                                   type=get_model_type(Package),
                                   data={'version': version})
         elif action == 'remove':
+            # We only clear versions and set the recent updated version
+            # on every project dependency to NULL. This way we can ensure
+            # stability on ProjectDependency.
             pkg = Package.objects.get(name=package)
+            if version is None:
+                pkg.versions.delete()
+            ProjectDependency.objects.filter(package=pkg) \
+                                     .update(update=None)
             log_affected_projects(pkg,
                                   action='remove_package',
                                   type=get_model_type(Package),
                                   data={'package': package})
-            pkg.delete()
+
+        elif action == 'create':
+            #TODO: do we need to create a log or handle any other special things?
+            #      Looks damn empty :-)
+            Package.objects.create_with_provider(package)

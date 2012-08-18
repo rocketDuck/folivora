@@ -122,7 +122,11 @@ class TestChangelogSync(TestCase):
     def test_package_removal_sync(self):
         result = tasks.sync_with_changelog.apply(throw=True)
         self.assertTrue(result.successful())
-        self.assertRaises(Package.DoesNotExist, Package.objects.get, name='gunicorn')
+        # We do not delete packages, check for existence
+        self.assertTrue(Package.objects.filter(name='gunicorn').exists())
+        # dependency stays the way it was, except that `.update` was cleared.
+        dep = ProjectDependency.objects.get(package__name='gunicorn')
+        self.assertEqual(dep.update, None)
 
     @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
     def test_package_removal_sync_log_creation(self):
