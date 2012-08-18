@@ -18,6 +18,18 @@ from .utils import get_model_type
 from .utils.pypi import CheeseShop
 
 
+def log_affected_projects(pkg, **kwargs):
+    affected_projects = Project.objects.filter(dependencies__package=pkg) \
+                                       .values_list('id', flat=True)
+
+    log_entries = []
+    for project in affected_projects:
+        # Add log entry for new package release
+        log = Log(project_id=project, **kwargs)
+        log_entries.append(log)
+    Log.objects.bulk_create(log_entries)
+
+
 #TODO: send notifications
 @task
 def sync_with_changelog():
@@ -60,15 +72,8 @@ def sync_with_changelog():
                 pkg.versions.add(update)
                 ProjectDependency.objects.filter(package=pkg) \
                                          .update(update=update)
-            affected_projects = Project.objects.filter(dependencies__package=pkg) \
-                                               .values_list('id', flat=True)
-            log_entries = []
-            for project in affected_projects:
-                # Add log entry for new package release
-                log = Log(project_id=project,
-                          package=pkg,
-                          action='new_release',
-                          type=get_model_type(Package),
-                          data={'version': version})
-                log_entries.append(log)
-            Log.objects.bulk_create(log_entries)
+
+            log_affected_projects(pkg, package=pkg,
+                                  action='new_release',
+                                  type=get_model_type(Package),
+                                  data={'version': version})
