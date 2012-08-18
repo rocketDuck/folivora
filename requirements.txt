@@ -13,3 +13,4 @@ django-debug-toolbar==0.9.4
 django-floppyforms==1.0
 mock==1.0b1
 django-registration==0.8
+Sphinx==1.1.3

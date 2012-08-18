@@ -1,0 +1,10 @@
+{% load url from future %}
+{% if sort_field == field %}
+  <a href="{% url 'folivora_project_list' %}?sort={% if sort_order == 'asc' %}-{% endif %}{{ field }}">
+    {{ verbose_name }}
+    <i class="icon-caret-{% if sort_order == 'asc' %}up{% else %}down{% endif %}"></i>
+  </a>
+{% else %}
+  {{ verbose_name }}
+{% endif %}
+

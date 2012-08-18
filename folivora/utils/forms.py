@@ -35,3 +35,4 @@ class FloppyFormsModelMetaclass(ModelFormMetaclass):
 
 class ModelForm(forms.LayoutRenderer, BaseModelForm):
     __metaclass__ = FloppyFormsModelMetaclass
+
