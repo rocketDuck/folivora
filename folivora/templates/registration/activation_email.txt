@@ -1,5 +1,7 @@
-{% load i18n %}{% url 'registration_activate' as registration_activate_url %}{% blocktrans %}Hello {{ user }},
+{% load i18n %}{% with domain=site.domain %}{% url registration.views.activate activation_key as registration_activate_url %}{% blocktrans %}Hello,
 
-your activation_key: {{ site.domain }}{{ registration_activate_url }}{{ activation_key }}
-{% endblocktrans %}
+click on the following link to activate your account
+http://{{ domain }}{{ registration_activate_url }}
+
+Your {{ domain }}-Team{% endblocktrans %}{% endwith %}
 
