@@ -11,7 +11,7 @@ from django.contrib import messages
 
 from braces.views import LoginRequiredMixin
 
-from .forms import AddProjectForm
+from .forms import AddProjectForm, UpdateUserProfileForm
 from .models import Project, UserProfile
 from .utils.views import SortListMixin
 
@@ -60,9 +60,8 @@ project_edit = lambda x, slug: render(x, 'folivora/index.html')
 
 
 class UpdateUserProfileView(UpdateView):
-    model = UserProfile
-
-    def get_queryset(self):
+    form_class = UpdateUserProfileForm
+    def get_object(self, queryset=None):
         return self.request.user.get_profile()
 
 
