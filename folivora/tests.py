@@ -1,11 +1,18 @@
 import pytz
 import mock
+
 from datetime import datetime
+
+from django.core.files.base import ContentFile
 from django.test import TestCase
+from django.test.client import Client
 from django.utils.timezone import make_aware
-from folivora.models import Package, PackageVersion, Project, Log, \
-    ProjectDependency
-from folivora import tasks
+
+from django.contrib.auth.models import User
+
+from .models import (Package, PackageVersion, Project, Log,
+    ProjectDependency)
+from . import tasks
 
 
 class CheesyMock(object):
@@ -109,3 +116,40 @@ class TestChangelogSync(TestCase):
         self.assertEqual(Log.objects.filter(project=self.project, action='new_release') \
                                     .count(),
                          1)
+
+
+VALID_REQUIREMENTS = 'Django==1.4.1\nSphinx==1.10'
+BROKEN_REQUIREMENTS = 'Django==1.4.1\n_--.>=asdhasjk ,,, [borked]\nSphinx==1.10'
+
+
+class TestProjectForms(TestCase):
+    def setUp(self):
+        user = User.objects.create_user('apollo13', 'mail@example.com', 'pwd')
+        self.c = Client()
+        self.c.login(username='apollo13', password='pwd')
+        Package.objects.bulk_create([
+            Package(name='Django'),
+            Package(name='Sphinx')
+        ])
+
+    def test_create_project(self):
+        """Test that basic project creation works"""
+        response = self.c.post('/projects/add/', {'slug':'test', 'name':'test',
+            'requirements':ContentFile(VALID_REQUIREMENTS, name='req.txt')})
+        self.assertEqual(response.status_code, 302)
+        p = Project.objects.get(slug='test')
+        # The requirements file contained two requirements
+        self.assertEqual(p.dependencies.count(), 2)
+        # We should have one member at this stage, the creator of the project
+        self.assertEqual(p.members.count(), 1)
+        self.assertEqual(p.members.all()[0].username, 'apollo13')
+
+    def test_create_project_with_borked_req(self):
+        """Ensure that unsupported requirement lines are skipped"""
+        response = self.c.post('/projects/add/', {'slug':'test', 'name':'test',
+            'requirements':ContentFile(BROKEN_REQUIREMENTS, name='req.txt')})
+        self.assertEqual(response.status_code, 302)
+        p = Project.objects.get(slug='test')
+        # although the requirements are somewhat borked we import what we can
+        self.assertEqual(p.dependencies.count(), 2)
+
