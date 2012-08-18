@@ -120,8 +120,9 @@ class Project(models.Model):
         return 'folivora_project_detail', (), {'slug': self.slug}
 
     def create_logentry(self, action, user, **kwargs):
-        Log.objects.create(project=self, type='folivora.project',
-            action=action, data=kwargs, user=user)
+        type = kwargs.get('type', 'folivora.project')
+        Log.objects.create(project=self, type=type,
+                           action=action, data=kwargs, user=user)
 
     @classmethod
     def format_logentry(cls, log):
