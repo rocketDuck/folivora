@@ -1,0 +1,14 @@
+{% extends 'page.html' %}
+{% load url from future %}
+{% load i18n %}
+{% block content %}
+<h1>{% trans 'Confirm deletion' %}</h1>
+{% blocktrans with name=object.name %}Do you really want delete the project “{{ name }}”?{% endblocktrans %}
+<form method="post" action="">
+  {% csrf_token %}
+  <div class="form-actions">
+    <button class="btn btn-danger" type="submit">{% trans 'Yes, delete it' %}</button>
+    <a href="{% url 'folivora_project_list' %}" class="btn">{% trans 'No, take me back' %}</a>
+  </div>
+</form>
+{% endblock content %}

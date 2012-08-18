@@ -29,11 +29,30 @@
         </div>
       </div>
     </div>
+    <div class="container">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">
+            <button class="close" data-dismiss="alert">&times;</button>
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
     {% block body %}
     {% endblock body %}
     <div class="container">
       <hr>
       <footer>&copy; rocketDuck 2012</footer>
     </div>
+    {% block scripts %}
+      <script type="text/javascript" src="{% static 'folivora/js/jquery-1.8.0.min.js' %}"></script>
+      <script type="text/javascript" src="{% static 'folivora/js/bootstrap-alert.js' %}"></script>
+      <script type="text/javascript">
+      $(document).ready(function() {
+        $(".alert").alert();
+      });
+      </script>
+    {% endblock scripts %}
   </body>
 </html>

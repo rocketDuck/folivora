@@ -77,7 +77,7 @@ class ProjectMember(models.Model):
 
 class Project(models.Model):
     name = models.CharField(_('name'), max_length=255)
-    slug = models.SlugField(_('slug'))
+    slug = models.SlugField(_('slug'), unique=True)
     members = models.ManyToManyField(User, through=ProjectMember,
           verbose_name=_('members'))
 
