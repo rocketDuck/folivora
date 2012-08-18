@@ -159,6 +159,12 @@ project_add_member = CreateProjectMemberView.as_view()
 class UpdateUserProfileView(LoginRequiredMixin, UpdateView):
     form_class = UpdateUserProfileForm
 
+    def form_valid(self, form):
+        lang = form.cleaned_data['language']
+        if lang:
+            self.request.session['django_language'] = lang
+        return super(UpdateUserProfileView, self).form_valid(form)
+
     def get_object(self, queryset=None):
         return self.request.user.get_profile()
 

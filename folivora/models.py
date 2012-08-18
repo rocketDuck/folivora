@@ -5,15 +5,18 @@ import datetime
 
 import pytz
 
+from django.conf import settings
 from django.db import models
 from django.db.models.loading import get_model
 from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _, ugettext
 from django.utils.timesince import timesince
 from django.utils.timezone import make_aware, now
 
 from django.contrib.auth.models import User
+from django.contrib.auth.signals import user_logged_in
 
 from django_orm.postgresql import hstore
 
@@ -176,17 +179,26 @@ class SyncState(models.Model):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User)
-    language = models.CharField(_('Language'), max_length=255)
+    language = models.CharField(_('Language'), max_length=255,
+                                choices=settings.LANGUAGES, blank=True)
     timezone = models.CharField(_('Timezone'), max_length=255)
-    jabber = models.CharField(_('Jabber'), max_length=255, blank=True)
+    jabber = models.CharField(_('JID'), max_length=255, blank=True)
 
     def get_absolute_url(self):
         return reverse('folivora_profile_edit')
 
 
+@receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
 
 
-post_save.connect(create_user_profile, sender=User)
+@receiver(user_logged_in)
+def set_user_lang(sender, request, user, **kwargs):
+    try:
+        profile = user.get_profile()
+        if profile.language:
+            request.session['django_language'] = profile.language
+    except UserProfile.DoesNotExist:
+        pass
