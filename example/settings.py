@@ -113,7 +113,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'south',
     'djcelery',
-    'djcelery.transport',
     'gunicorn',
     'folivora',
     # Uncomment the next line to enable the admin:
