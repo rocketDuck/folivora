@@ -32,7 +32,8 @@ class Package(models.Model):
 
 
 class PackageVersion(models.Model):
-    package = models.ForeignKey(Package, verbose_name=_('package'))
+    package = models.ForeignKey(Package, verbose_name=_('package'),
+                                related_name='versions')
     version = models.CharField(_('version'), max_length=255)
     release_date = models.DateTimeField(_('release date'))
 
@@ -96,3 +97,14 @@ class Log(models.Model):
         verbose_name = _('log')
         verbose_name_plural = _('logs')
 
+
+class SyncState(models.Model):
+    """Generic model to store syncronization states."""
+    CHANGELOG = 'changelog'
+
+    TYPE_CHOICES = (
+        (_('Changelog'), CHANGELOG),
+    )
+
+    type = models.CharField(max_length=255, choices=TYPE_CHOICES, unique=True)
+    last_sync = models.DateTimeField(_('Last Sync'))
