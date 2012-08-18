@@ -15,7 +15,6 @@ from distutils.version import LooseVersion
 
 from .models import (SyncState, Package, PackageVersion,
     ProjectDependency, Log, Project)
-from .utils import get_model_type
 from .utils.pypi import CheeseShop
 
 
@@ -74,9 +73,9 @@ def sync_with_changelog():
                 ProjectDependency.objects.filter(package=pkg) \
                                          .update(update=update)
 
-            log_affected_projects(pkg, package=pkg,
+            log_affected_projects(pkg,
                                   action='new_release',
-                                  type=get_model_type(Package),
+                                  type='package',
                                   data={'version': version})
         elif action == 'remove':
             # We only clear versions and set the recent updated version
@@ -87,9 +86,8 @@ def sync_with_changelog():
                 pkg.versions.delete()
             ProjectDependency.objects.filter(package=pkg) \
                                      .update(update=None)
-            log_affected_projects(pkg,
-                                  action='remove_package',
-                                  type=get_model_type(Package),
+            log_affected_projects(pkg, action='remove_package',
+                                  type='package',
                                   data={'package': package})
 
         elif action == 'create':
@@ -118,7 +116,7 @@ def sync_project(project_pk):
             dependency.update = PackageVersion.objects.get(package=package,
                                                            version=versions[-1])
             dependency.save()
-            log_entries.append(Log(type=get_model_type(ProjectDependency),
+            log_entries.append(Log(type='project_dependency',
                                    action='update_available',
                                    project=project, package=package,
                                    data={'version': versions[-1]}))

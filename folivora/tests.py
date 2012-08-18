@@ -14,7 +14,7 @@ from django.contrib.auth.models import User
 from .models import (Package, PackageVersion, Project, Log,
     ProjectDependency, ProjectMember)
 from . import tasks
-from .utils import get_model_type, parse_requirements
+from .utils import parse_requirements
 from .utils.jabber import is_valid_jid
 
 
@@ -230,20 +230,19 @@ class TestProjectModel(TestCase):
         self.user = User.objects.create_user('test', 'test@example.com', 'test')
 
     def test_create_logentry_basic(self):
-        self.project.create_logentry('some_testing', self.user)
+        self.project.create_logentry('project', 'some_testing', self.user)
         log = Log.objects.get(project=self.project, action='some_testing')
         self.assertEqual(log.project, self.project)
-        self.assertEqual(log.type, 'folivora.project')
+        self.assertEqual(log.type, 'project')
         self.assertEqual(log.package, None)
         self.assertEqual(log.user, self.user)
 
     def test_create_logentry_with_data(self):
-        self.project.create_logentry('shoutout', self.user,
-                                     type=Log,
-                                     message='Hey everybody!')
+        self.project.create_logentry(action='shoutout', user=self.user,
+                                     type='log', message='Hey everybody!')
         log = Log.objects.get(project=self.project, action='shoutout')
         self.assertEqual(log.project, self.project)
-        self.assertEqual(log.type, 'folivora.log')
+        self.assertEqual(log.type, 'log')
         self.assertEqual(log.package, None)
         self.assertEqual(log.user, self.user)
         self.assertEqual(log.data['message'], 'Hey everybody!')
@@ -287,10 +286,6 @@ class TestUserProfileView(TestCase):
 
 
 class TestUtils(TestCase):
-
-    def test_get_model_type(self):
-        self.assertEqual(get_model_type(Package), 'folivora.package')
-        self.assertEqual(get_model_type(User), 'auth.user')
 
     def test_jid_verification(self):
         self.assertTrue(is_valid_jid('apollo13@example.com'))

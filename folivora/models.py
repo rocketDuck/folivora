@@ -17,9 +17,7 @@ from django.contrib.auth.models import User
 
 from django_orm.postgresql import hstore
 
-from .utils import get_model_type
 from .utils.pypi import DEFAULT_SERVER, CheeseShop
-from .utils.html import format_html
 
 
 PROVIDES = ('pypi',)
@@ -123,21 +121,11 @@ class Project(models.Model):
     def get_absolute_url(self):
         return 'folivora_project_detail', (), {'slug': self.slug}
 
-    def create_logentry(self, action, user=None, **kwargs):
-        type = kwargs.pop('type', self.__class__)
-        assert issubclass(type, models.Model)
+    def create_logentry(self, type, action, user=None, **kwargs):
         when = kwargs.pop('when', now())
         package = kwargs.pop('package', None)
-        Log.objects.create(project=self, type=get_model_type(type),
+        Log.objects.create(project=self, type=type,
                            action=action, data=kwargs, user=user)
-
-    @classmethod
-    def format_logentry(cls, log):
-        if log.action == 'add':
-            msg = ugettext(u'{user} created project “{name}” {timesince} ago')
-            return format_html(msg, user=log.user.username,
-                               name=log.data['name'],
-                               timesince=timesince(log.when))
 
 
 class ProjectDependency(models.Model):
@@ -151,15 +139,6 @@ class ProjectDependency(models.Model):
     class Meta:
         verbose_name = _('project dependency')
         verbose_name_plural = _('project dependencies')
-
-    @classmethod
-    def format_logentry(cls, log):
-        if log.action == 'update_available':
-            msg = ugettext(u'Version {version} of {package} available on PyPI '
-                           u'since {timesince}')
-            return format_html(msg, version=log.data['version'],
-                               package=log.package.name,
-                               timesince=timesince(log.when))
 
 
 class Log(models.Model):
@@ -179,10 +158,8 @@ class Log(models.Model):
         verbose_name_plural = _('logs')
 
     @property
-    def display(self):
-        app, model = self.type.split('.')
-        model = get_model(app, model)
-        return model.format_logentry(self)
+    def template(self):
+        return 'folivora/notifications/{}.{}.html'.format(self.type, self.action)
 
 
 class SyncState(models.Model):
