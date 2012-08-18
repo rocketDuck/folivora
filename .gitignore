@@ -36,3 +36,4 @@ nosetests.xml
 
 .sass-cache
 _build
+htmlcov
