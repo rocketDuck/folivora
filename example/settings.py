@@ -120,6 +120,7 @@ INSTALLED_APPS = (
     'floppyforms',
     'south',
     'djcelery',
+    'kombu.transport.django',
     'gunicorn',
     'debug_toolbar',
     'registration',
@@ -170,3 +171,5 @@ CELERY_TIMEZONE = 'UTC'
 # Django-registration
 ACCOUNT_ACTIVATION_DAYS = 42
 REGISTRATION_OPEN = True
+
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
