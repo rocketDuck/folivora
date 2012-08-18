@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+{% load static from staticfiles %}
+{% load i18n %}
+<html>
+  <head>
+    <title>{% block title %}{% endblock title %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{% static 'folivora/css/screen.css' %}" rel="stylesheet">
+  </head>
+  <body>
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div>
+          <a class="brand" href="#">Folivora</a>
+          <ul class="nav pull-right">
+          {% if not user.is_authenticated %}
+            <li><a href="">{% trans 'Register' %}</a></li>
+            <li><a href=""><i class="icon-signin"></i> {% trans 'Login' %}</a></li>
+          {% else %}
+            <li><a href=""><i class="icon-signout"></i>{% trans 'Logout' %}</a></li>
+          {% endif %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
