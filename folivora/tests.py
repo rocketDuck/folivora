@@ -247,6 +247,18 @@ class TestProjectModel(TestCase):
         self.assertEqual(log.user, self.user)
         self.assertEqual(log.data['message'], 'Hey everybody!')
 
+    def test_members(self):
+        self.assertEqual(self.project.members.count(), 0)
+        ProjectMember.objects.create(user=self.user, project=self.project,
+                                     state=ProjectMember.MEMBER)
+        self.assertEqual(self.project.members.count(), 1)
+        self.assertEqual(self.project.owners.count(), 0)
+        owner = User.objects.create_user('owner', 'owner@example.com', 'pwd')
+        ProjectMember.objects.create(user=owner, project=self.project,
+                                     state=ProjectMember.OWNER)
+        self.assertEqual(self.project.members.count(), 2)
+        self.assertEqual(self.project.owners.count(), 1)
+
 
 class TestProjectViews(TestCase):
     def setUp(self):
