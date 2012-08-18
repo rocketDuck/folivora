@@ -250,15 +250,18 @@ class TestProjectModel(TestCase):
 
 class TestProjectViews(TestCase):
     def setUp(self):
+        admin = User.objects.create_user('admin', 'admin@example.com', 'pwd')
         self.user = User.objects.create_user('apollo13', 'mail@example.com', 'pwd')
         self.project = Project.objects.create(name='test', slug='test')
+        ProjectMember.objects.create(user=admin, project=self.project,
+                                     state=ProjectMember.OWNER)
         self.c = Client()
-        self.c.login(username='apollo13', password='pwd')
+        self.c.login(username='admin', password='pwd')
 
     def test_app_project_member(self):
         response = self.c.post('/project/test/add/', {'user': self.user.id})
         self.assertEqual(response.status_code, 200)
-        id = ProjectMember.objects.filter(project=self.project)[0].id
+        id = ProjectMember.objects.filter(project=self.project)[1].id
         self.assertEqual(response.content,
             '{"username": "apollo13", "id": %d}' % id)
 
