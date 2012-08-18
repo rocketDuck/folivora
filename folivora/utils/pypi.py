@@ -11,7 +11,7 @@ import xmlrpclib
 
 def get_seconds(hours):
     """Get number of seconds since epoch from now minus `hours`"""
-    return int(time.gmtime() - (60 * 60) * hours)
+    return int(time.time() - (60 * 60) * hours)
 
 
 DEFAULT_SERVER = 'http://pypi.python.org/pypi/'
