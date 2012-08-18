@@ -11,8 +11,8 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'database.db',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'folivora',
     }
 }
 
