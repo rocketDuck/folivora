@@ -120,7 +120,9 @@ class Project(models.Model):
         return 'folivora_project_detail', (), {'slug': self.slug}
 
     def create_logentry(self, action, user, **kwargs):
-        type = kwargs.get('type', 'folivora.project')
+        type = kwargs.pop('type', 'folivora.project')
+        when = kwargs.pop('when', now())
+        package = kwargs.pop('package', None)
         Log.objects.create(project=self, type=type,
                            action=action, data=kwargs, user=user)
 

@@ -3,6 +3,7 @@ import mock
 from datetime import datetime
 from django.test import TestCase
 from django.utils.timezone import make_aware
+from django.contrib.auth.models import User
 from folivora.models import Package, PackageVersion, Project, Log, \
     ProjectDependency
 from folivora import tasks
@@ -109,3 +110,18 @@ class TestChangelogSync(TestCase):
         self.assertEqual(Log.objects.filter(project=self.project, action='new_release') \
                                     .count(),
                          1)
+
+
+class TestProjectModel(TestCase):
+
+    def setUp(self):
+        self.project = Project.objects.create(name='test', slug='test')
+        self.user = User.objects.create_user('test', 'test@example.com', 'test')
+
+    def test_create_logentry_basic(self):
+        self.project.create_logentry('some_testing', self.user)
+        log = Log.objects.get(project=self.project, action='some_testing')
+        self.assertEqual(log.project, self.project)
+        self.assertEqual(log.type, 'folivora.project')
+        self.assertEqual(log.package, None)
+        self.assertEqual(log.user, self.user)
