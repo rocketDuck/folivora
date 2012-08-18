@@ -45,19 +45,14 @@ def sync_with_changelog():
 
     for package, version, stamp, action in log:
         if action == 'new release':
-            print package, version, stamp, action
             try:
                 pkg = Package.objects.get(name=package)
             except Package.DoesNotExist:
                 pkg = Package.create_with_provider_url(package)
 
-            print pkg
             release_date = make_aware(datetime.datetime.fromtimestamp(stamp),
                                       pytz.UTC)
-            print release_date
-            if PackageVersion.objects.filter(version=version).exists():
-                print "version %s already exists!" % version
-            else:
+            if not PackageVersion.objects.filter(version=version).exists():
                 print "update %s with version %s" % (package, version)
                 update = PackageVersion(version=version,
                                         release_date=release_date)
