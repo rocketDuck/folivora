@@ -70,7 +70,7 @@ class ProjectDependencyForm(ModelForm):
 class UpdateUserProfileForm(ModelForm):
     timezone = forms.ChoiceField(label=ugettext_lazy('Timezone'), required=True,
                                  choices=zip(TIMEZONES, TIMEZONES))
-    jabber = JabberField()
+    jabber = JabberField(required=False)
     class Meta:
         model = UserProfile
         exclude = ('user',)

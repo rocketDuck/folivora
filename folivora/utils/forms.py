@@ -57,9 +57,9 @@ class ModelForm(forms.LayoutRenderer, BaseModelForm):
 
 class JabberField(fields.CharField):
     def clean(self, value):
-        if not value:
-            return
         value = value.strip()
+        if not value and not self.required:
+            return value
         if not is_valid_jid(value):
             raise ValidationError(_(u'The entered Jabber address is invalid. '
                 u'Please check your input.'))
