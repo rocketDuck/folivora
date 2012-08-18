@@ -209,7 +209,6 @@ class TestProjectForms(TestCase):
 
 
 class TestProjectModel(TestCase):
-
     def setUp(self):
         self.project = Project.objects.create(name='test', slug='test')
         self.user = User.objects.create_user('test', 'test@example.com', 'test')
@@ -232,6 +231,41 @@ class TestProjectModel(TestCase):
         self.assertEqual(log.package, None)
         self.assertEqual(log.user, self.user)
         self.assertEqual(log.data['message'], 'Hey everybody!')
+
+
+class TestProjectViews(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user('apollo13', 'mail@example.com', 'pwd')
+        self.project = Project.objects.create(name='test', slug='test')
+        self.c = Client()
+        self.c.login(username='apollo13', password='pwd')
+
+    def test_app_project_member(self):
+        response = self.c.post('/project/test/add/', {'user': self.user.id})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, '{"username": "apollo13", "id": 1}')
+
+
+class TestUserProfileView(TestCase):
+    def setUp(self):
+        user = User.objects.create_user('apollo13', 'mail@example.com', 'pwd')
+        self.c = Client()
+        self.c.login(username='apollo13', password='pwd')
+
+    def test_update_profile(self):
+        response = self.c.get('/accounts/profile/')
+        self.assertEqual(response.status_code, 200)
+        response = self.c.post('/accounts/profile/', {
+            'jabber': 'jabber@example.com',
+            'language': 'German',
+            'timezone': 'Europe/Berlin',})
+        self.assertEqual(response.status_code, 302)
+        response = self.c.post('/accounts/profile/', {
+            'jabber': 'wrong',
+            'language': 'German',
+            'timezone': 'Europe/Berlin',})
+        self.assertEqual(response.status_code, 200)
+
 
 
 class TestUtils(TestCase):
