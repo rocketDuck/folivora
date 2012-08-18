@@ -1,10 +1,13 @@
-{% extends 'base.html' %}
-
-{% block body %}
-
-<form action="" method="post">
-    {% csrf_token %}
-    {{ form }}
-    <input type="submit">
+{% extends 'page.html' %}
+{% load floppyforms %}
+{% load i18n %}
+{% block content %}
+<form class="form-horizontal" action="" method="post">
+  {% csrf_token %}
+  {% form form using 'floppyforms/layouts/bootstrap.html' %}
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">{% trans 'Register' %}</button>
+    <button class="btn">{% trans 'Cancel' %}</button>
+  </div>
 </form>
-{% endblock body %}
+{% endblock content %}
