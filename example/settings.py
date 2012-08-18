@@ -113,6 +113,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'south',
     'djcelery',
+    'djcelery.transport',
     'gunicorn',
     'folivora',
     # Uncomment the next line to enable the admin:
@@ -153,3 +154,6 @@ LOGGING = {
 # Initialize django-celery
 import djcelery
 djcelery.setup_loader()
+
+# Use django database
+BROKER_URL = 'django://'
