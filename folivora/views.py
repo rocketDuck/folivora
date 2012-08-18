@@ -11,7 +11,7 @@ from django.contrib import messages
 
 from braces.views import LoginRequiredMixin
 
-from .forms import AddProjectForm, UpdateUserProfileForm
+from .forms import AddProjectForm, UpdateProjectForm, UpdateUserProfileForm
 from .models import Project, UserProfile
 from .utils.views import SortListMixin
 
@@ -36,9 +36,19 @@ project_list = ListProjectView.as_view()
 class AddProjectView(LoginRequiredMixin, CreateView):
     model = Project
     form_class = AddProjectForm
+    template_name_suffix = '_add'
 
 
 project_add = AddProjectView.as_view()
+
+
+class UpdateProjectView(LoginRequiredMixin, UpdateView):
+    model = Project
+    form_class = UpdateProjectForm
+    template_name_suffix = '_update'
+
+
+project_update = UpdateProjectView.as_view()
 
 
 class DeleteProjectView(LoginRequiredMixin, DeleteView):
@@ -56,10 +66,9 @@ class DeleteProjectView(LoginRequiredMixin, DeleteView):
 project_delete = DeleteProjectView.as_view()
 
 project_detail = lambda x, slug: render(x, 'folivora/index.html')
-project_edit = lambda x, slug: render(x, 'folivora/index.html')
 
 
-class UpdateUserProfileView(UpdateView):
+class UpdateUserProfileView(LoginRequiredMixin, UpdateView):
     form_class = UpdateUserProfileForm
     def get_object(self, queryset=None):
         return self.request.user.get_profile()

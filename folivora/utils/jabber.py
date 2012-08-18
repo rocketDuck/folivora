@@ -8,5 +8,5 @@ from django.conf import settings
 _jabber_re = re.compile(r'(?xi)(?:[a-z0-9!$\(\)*+,;=\[\\\]\^`{|}\-._~]+)@')
 
 
-def may_be_valid_jabber(jabber):
+def is_valid_jid(jabber):
     return _jabber_re.match(jabber) is not None
