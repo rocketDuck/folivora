@@ -12,3 +12,4 @@ django-braces==0.1.3
 django-debug-toolbar==0.9.4
 django-floppyforms==1.0
 mock==1.0b1
+django-registration==0.8

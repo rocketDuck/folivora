@@ -163,3 +163,7 @@ djcelery.setup_loader()
 BROKER_URL = 'django://'
 
 CELERY_TIMEZONE = 'UTC'
+
+# Django-registration
+ACCOUNT_ACTIVATION_DAYS = 42
+REGISTRATION_OPEN = True
