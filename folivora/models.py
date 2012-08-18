@@ -1,14 +1,19 @@
+import time
 import urlparse
+import datetime
+
+import pytz
 
 from django.db import models
 from django.db.models.signals import post_save
 from django.utils.translation import ugettext_lazy as _
+from django.utils.timezone import make_aware
 
 from django.contrib.auth.models import User
 
 from django_orm.postgresql import hstore
 
-from folivora.utils.pypi import DEFAULT_SERVER
+from folivora.utils.pypi import DEFAULT_SERVER, CheeseShop
 
 
 PROVIDES = ('pypi',)
@@ -24,6 +29,7 @@ class Package(models.Model):
     url = models.URLField(_('url'))
     provider = models.CharField(_('provider'), max_length=255,
         choices=PROVIDER_CHOICES)
+    initial_sync_done = models.BooleanField(default=False)
 
     @classmethod
     def create_with_provider_url(cls, name, provider='pypi', url=None):
@@ -32,6 +38,26 @@ class Package(models.Model):
         pkg = cls(name=name, url=url, provider=provider)
         pkg.save()
         return pkg
+
+    def sync_versions(self):
+        if self.initial_sync_done:
+            return
+        client = CheeseShop()
+        versions = client.get_package_versions(self.name)
+        for version in versions:
+            urls = client.get_release_urls(self.name, version)
+            if urls:
+                url = urls[0]
+            utime = time.mktime(url['upload_time'].timetuple())
+            release_date = make_aware(
+                datetime.datetime.fromtimestamp(utime),
+                pytz.UTC)
+            PackageVersion.objects.get_or_create(
+                package=self,
+                version=version,
+                release_date=release_date)
+        self.initial_sync_done = True
+        self.save()
 
     class Meta:
         verbose_name = _('package')
