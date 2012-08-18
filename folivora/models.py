@@ -5,21 +5,22 @@ import datetime
 
 import pytz
 
+from django.conf import settings
 from django.db import models
 from django.db.models.loading import get_model
 from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _, ugettext
 from django.utils.timesince import timesince
 from django.utils.timezone import make_aware, now
 
 from django.contrib.auth.models import User
+from django.contrib.auth.signals import user_logged_in
 
 from django_orm.postgresql import hstore
 
-from .utils import get_model_type
 from .utils.pypi import DEFAULT_SERVER, CheeseShop
-from .utils.html import format_html
 
 
 PROVIDES = ('pypi',)
@@ -124,21 +125,11 @@ class Project(models.Model):
     def get_absolute_url(self):
         return 'folivora_project_detail', (), {'slug': self.slug}
 
-    def create_logentry(self, action, user=None, **kwargs):
-        type = kwargs.pop('type', self.__class__)
-        assert issubclass(type, models.Model)
+    def create_logentry(self, type, action, user=None, **kwargs):
         when = kwargs.pop('when', now())
         package = kwargs.pop('package', None)
-        Log.objects.create(project=self, type=get_model_type(type),
+        Log.objects.create(project=self, type=type,
                            action=action, data=kwargs, user=user)
-
-    @classmethod
-    def format_logentry(cls, log):
-        if log.action == 'add':
-            msg = ugettext(u'{user} created project “{name}” {timesince} ago')
-            return format_html(msg, user=log.user.username,
-                               name=log.data['name'],
-                               timesince=timesince(log.when))
 
 
 class ProjectDependency(models.Model):
@@ -171,10 +162,8 @@ class Log(models.Model):
         verbose_name_plural = _('logs')
 
     @property
-    def display(self):
-        app, model = self.type.split('.')
-        model = get_model(app, model)
-        return model.format_logentry(self)
+    def template(self):
+        return 'folivora/notifications/{}.{}.html'.format(self.type, self.action)
 
 
 class SyncState(models.Model):
@@ -191,17 +180,28 @@ class SyncState(models.Model):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User)
-    language = models.CharField(_('Language'), max_length=255)
-    timezone = models.CharField(_('Timezone'), max_length=255)
-    jabber = models.CharField(_('Jabber'), max_length=255, blank=True)
+    language = models.CharField(_('Language'), max_length=255,
+                                choices=settings.LANGUAGES, blank=True)
+    timezone = models.CharField(_('Timezone'), max_length=255, default='UTC')
+    jabber = models.CharField(_('JID'), max_length=255, blank=True)
 
     def get_absolute_url(self):
         return reverse('folivora_profile_edit')
 
 
+@receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
 
 
-post_save.connect(create_user_profile, sender=User)
+@receiver(user_logged_in)
+def set_user_lang(sender, request, user, **kwargs):
+    try:
+        profile = user.get_profile()
+        if profile.language:
+            request.session['django_language'] = profile.language
+        if profile.timezone:
+            request.session['django_timezone'] = profile.timezone
+    except UserProfile.DoesNotExist:
+        pass

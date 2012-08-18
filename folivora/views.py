@@ -125,7 +125,10 @@ class DetailProjectView(MemberRequiredMixin, DetailView):
         context.update({
             'log_entries': Log.objects.filter(project=project) \
                                       .order_by('-when') \
-                                      .select_related('user')
+                                      .select_related('user'),
+            'updates': ProjectDependency.objects.filter(project=project) \
+                                                .filter(update__isnull=False) \
+                                                .count()
         })
         return context
 
@@ -156,6 +159,15 @@ project_add_member = CreateProjectMemberView.as_view()
 
 class UpdateUserProfileView(LoginRequiredMixin, UpdateView):
     form_class = UpdateUserProfileForm
+
+    def form_valid(self, form):
+        lang = form.cleaned_data['language']
+        if lang:
+            self.request.session['django_language'] = lang
+        timezone = form.cleaned_data['timezone']
+        if timezone:
+            self.request.session['django_timezone'] = timezone
+        return super(UpdateUserProfileView, self).form_valid(form)
 
     def get_object(self, queryset=None):
         return self.request.user.get_profile()

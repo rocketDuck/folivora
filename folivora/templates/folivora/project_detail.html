@@ -1,11 +1,12 @@
 {% extends 'page.html' %}
 {% load url from future %}
 {% load i18n %}
-{% block headline %}{{ project.name }}<a href="{% url 'folivora_project_update' project.slug %}" class="btn btn-primary pull-right">{% trans 'Edit project' %}</a>{% endblock headline %}
+{% block headline %}{{ project.name }}
+  {% if updates %}{% blocktrans %} ({{ updates }} updates available){% endblocktrans %}{% endif %}
+  <a href="{% url 'folivora_project_update' project.slug %}" class="btn btn-primary pull-right">{% trans 'Edit project' %}</a>
+{% endblock headline %}
 {% block content %}
-<ul>
-{% for entry in log_entries %}
-  <li>{{ entry.display }}</li>
+{% for log in log_entries %}
+  <div class="well">{% include log.template %}</div>
 {% endfor %}
-</ul>
 {% endblock content %}

@@ -11,11 +11,10 @@ import datetime
 import pytz
 from celery import task
 from django.utils import timezone
-from distutils.version import StrictVersion
+from distutils.version import LooseVersion
 
 from .models import (SyncState, Package, PackageVersion,
     ProjectDependency, Log, Project)
-from .utils import get_model_type
 from .utils.pypi import CheeseShop
 
 
@@ -74,9 +73,9 @@ def sync_with_changelog():
                 ProjectDependency.objects.filter(package=pkg) \
                                          .update(update=update)
 
-            log_affected_projects(pkg, package=pkg,
+            log_affected_projects(pkg,
                                   action='new_release',
-                                  type=get_model_type(Package),
+                                  type='package',
                                   data={'version': version})
         elif action == 'remove':
             # We only clear versions and set the recent updated version
@@ -87,9 +86,8 @@ def sync_with_changelog():
                 pkg.versions.delete()
             ProjectDependency.objects.filter(package=pkg) \
                                      .update(update=None)
-            log_affected_projects(pkg,
-                                  action='remove_package',
-                                  type=get_model_type(Package),
+            log_affected_projects(pkg, action='remove_package',
+                                  type='package',
                                   data={'package': package})
 
         elif action == 'create':
@@ -103,9 +101,23 @@ def sync_project(project_pk):
     project = Project.objects.get(pk=project_pk)
 
     for dependency in project.dependencies.all():
-        versions = list(dependency.package.versions.values_list('version', flat=True))
+        package = dependency.package
+        package.sync_versions()
+        versions = list(package.versions.values_list('version', flat=True))
+        log_entries = []
         if versions:
-            versions.sort(key=StrictVersion)
-            dependency.update = PackageVersion.objects.get(package=dependency.package,
+            # We use LooseVersion since at least pytz fails with StrictVersion
+            # TODO: tests
+            versions.sort(key=LooseVersion)
+
+            if LooseVersion(dependency.version) >= LooseVersion(versions[-1]):
+                continue # The dependency is up2date, nothing to do
+
+            dependency.update = PackageVersion.objects.get(package=package,
                                                            version=versions[-1])
             dependency.save()
+            log_entries.append(Log(type='project_dependency',
+                                   action='update_available',
+                                   project=project, package=package,
+                                   data={'version': versions[-1]}))
+        Log.objects.bulk_create(log_entries)
