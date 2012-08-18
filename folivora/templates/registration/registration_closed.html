@@ -2,6 +2,6 @@
 
 {% load i18n %}
 
-{% block content %}
-{% blocktrans %}You can not register at the moment.{% endblocktrans %}
-{% endblock content %}
+{% block headline %}{% trans 'Registration closed :(' %}{% endblock %}
+
+{% block content %}{% trans 'You can not register at the moment.'%}{% endblock content %}

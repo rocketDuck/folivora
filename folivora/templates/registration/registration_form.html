@@ -1,6 +1,7 @@
 {% extends 'page.html' %}
 {% load floppyforms %}
 {% load i18n %}
+{% block headline %}{% trans 'Signup' %}{% endblock %}
 {% block content %}
 <form class="form-horizontal" action="" method="post">
   {% csrf_token %}

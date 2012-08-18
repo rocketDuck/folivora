@@ -5,6 +5,7 @@ from datetime import datetime
 
 from django.core.files.base import ContentFile
 from django.test import TestCase
+from django.utils.timezone import make_aware, now
 from django.test.client import Client
 from django.utils.timezone import make_aware
 
@@ -141,6 +142,34 @@ class TestChangelogSync(TestCase):
         self.assertEqual(Log.objects.filter(project=self.project, action='remove_package') \
                                     .count(),
                          1)
+
+
+class TestSyncProjectTask(TestCase):
+
+    def setUp(self):
+        pkg = Package.create_with_provider_url('pmxbot')
+        pkg.versions.add(PackageVersion(version='1101.8.0',
+                                        release_date=now()))
+        pkg.versions.add(PackageVersion(version='1101.8.1',
+                                        release_date=now()))
+        pkg2 = Package.create_with_provider_url('gunicorn')
+        self.project = Project.objects.create(name='test', slug='test')
+        dependency = ProjectDependency.objects.create(
+            project=self.project,
+            package=pkg,
+            version='1101.8.0')
+        dependency2 = ProjectDependency.objects.create(
+            project=self.project,
+            package=pkg2,
+            version='0.14.6')
+
+    def test_sync_project(self):
+        result = tasks.sync_project.apply(args=(self.project.pk,), throw=True)
+        self.assertTrue(result.successful())
+        dep = ProjectDependency.objects.get(project=self.project,
+                                            package__name='pmxbot',
+                                            version='1101.8.0')
+        self.assertEqual(dep.update.version, '1101.8.1')
 
 
 VALID_REQUIREMENTS = 'Django==1.4.1\nSphinx==1.10'
