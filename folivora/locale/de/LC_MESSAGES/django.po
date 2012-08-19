@@ -630,4 +630,4 @@ msgstr ""
 #: utils/notifications.py:31
 msgid "{prefix}New update available for project \"{project}\""
 msgstr ""
-"{prefix}Neue Aktualisierungen sind für das Projekt „{project}“ verfügbar"
+"{prefix}Eine neue Aktualisierung ist für das Projekt „{project}“ verfügbar"
