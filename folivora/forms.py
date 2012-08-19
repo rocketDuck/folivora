@@ -38,12 +38,14 @@ class AddProjectForm(ModelForm):
         known_package_names = map(lambda x: x[0], known_packages)
 
         # TODO: report missing back to the ui.
-        missing.extend(set(packages.keys()).difference(set(known_package_names)))
+        missing.extend(
+            set(packages.keys()).difference(set(known_package_names)))
 
         project_deps = []
 
         for name, pk in known_packages:
-            project_deps.append(ProjectDependency(package_id=pk, version=packages[name]))
+            project_deps.append(ProjectDependency(package_id=pk,
+                                                  version=packages[name]))
 
         return project_deps
 
@@ -67,7 +69,8 @@ class ProjectDependencyForm(ModelForm):
 
 
 class UpdateUserProfileForm(ModelForm):
-    timezone = forms.ChoiceField(label=ugettext_lazy('Timezone'), required=True,
+    timezone = forms.ChoiceField(label=ugettext_lazy('Timezone'),
+                                 required=True,
                                  choices=zip(TIMEZONES, TIMEZONES))
     jabber = JabberField(required=False)
     email = forms.EmailField(required=True)

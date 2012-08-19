@@ -20,14 +20,13 @@ def route_notifications(*log_entries):
             ACTION_MAPPING[entry.action](entry)
 
 
-
 def send_update_avilable_notification(log):
     """Send a notification to all project members that are affected by `log`.
 
     :param log: Log model that holds information for the notification.
     """
-    message = loader.render_to_string('notifications/update_available.mail.txt',
-                                      {'log': log})
+    msg = loader.render_to_string('notifications/update_available.mail.txt',
+                                  {'log': log})
     subject = '{prefix}New update available for project "{project}"'.format(**{
         'prefix': settings.EMAIL_SUBJECT_PREFIX,
         'project': log.project.name})
@@ -37,9 +36,8 @@ def send_update_avilable_notification(log):
     for member in members:
         mails.append(member.mail or member.user.email)
 
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, mails,
+    send_mail(subject, msg, settings.DEFAULT_FROM_EMAIL, mails,
               fail_silently=False)
-
 
 
 ACTION_MAPPING = {

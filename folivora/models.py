@@ -197,7 +197,9 @@ class ProjectDependency(models.Model):
             remove.append((instance.package.id, instance.version))
         for instance, d in formset.changed_objects:
             existing = original_data[instance.pk]
-            change.append((instance.package.id, existing.version, instance.version))
+            change.append((instance.package.id,
+                           existing.version,
+                           instance.version))
         formset.instance.process_changes(user, remove, change)
 
 
@@ -219,7 +221,8 @@ class Log(models.Model):
 
     @property
     def template(self):
-        return 'folivora/notifications/{}.{}.html'.format(self.type, self.action)
+        return 'folivora/notifications/{}.{}.html'.format(self.type,
+                                                          self.action)
 
 
 class SyncState(models.Model):
