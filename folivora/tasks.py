@@ -92,7 +92,7 @@ def sync_with_changelog():
             try:
                 pkg = Package.objects.get(name=package)
                 if version is None:
-                    pkg.versions.delete()
+                    pkg.versions.all().delete()
                 ProjectDependency.objects.filter(package=pkg) \
                                          .update(update=None)
                 log_affected_projects(pkg, action='remove_package',
