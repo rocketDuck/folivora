@@ -3,12 +3,12 @@
 {% load i18n %}
 {% block headline %}{% trans 'Edit dependencies' %}{% endblock %}
 {% block content %}
-<form action="" method="post">
-{% csrf_token %}
-{% form form using 'floppyforms/layouts/bootstrap.html' %}
-<div class="form-actions">
-  <button class="btn btn-primary" type="submit">{% trans 'Update dependencies' %}</button>
-  <button class="btn">{% trans 'Cancel' %}</button>
-</div>
+<form class="form-horizontal" action="" method="post">
+    {% csrf_token %}
+    {% form form using 'floppyforms/layouts/bootstrap.html' %}
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">{% trans 'Update dependencies' %}</button>
+      <button class="btn">{% trans 'Cancel' %}</button>
+    </div>
 </form>
 {% endblock content %}

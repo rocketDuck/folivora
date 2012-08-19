@@ -3,7 +3,7 @@
 {% load i18n %}
 {% block headline %}{% trans 'Add member' %}{% endblock %}
 {% block content %}
-<form action="" method="post">
+<form class="form-horizontal" action="" method="post">
     {% csrf_token %}
     {% form form using 'floppyforms/layouts/bootstrap.html' %}
     <div class="form-actions">
