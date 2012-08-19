@@ -345,6 +345,12 @@ class TestProjectViews(TestCase):
     def test_dashboard(self):
         response = self.c.get('/dashboard/')
         self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['log_entries'])
+        self.c.post('/projects/add/',
+                   {'name': 'new_project',
+                    'slug': 'new_project'})
+        response = self.c.get('/dashboard/')
+        self.assertEqual(len(response.context['log_entries']), 1)
 
     def test_project_list(self):
         response = self.c.get('/projects/')
