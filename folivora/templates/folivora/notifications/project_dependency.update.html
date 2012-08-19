@@ -1,4 +1,2 @@
 {% load i18n %}
-{% blocktrans with user=log.user package=log.package old_version=log.data.old_version version=log.data.version timesince=log.when|timesince %}
-{{ user }} updated {{ package }} from {{ old_version }} to {{ version }} {{ timesince }} ago.
-{% endblocktrans %}
+{% blocktrans with user=log.user package=log.package old_version=log.data.old_version version=log.data.version timesince=log.when|timesince %}{{ user }} updated {{ package }} from {{ old_version }} to {{ version }} {{ timesince }} ago.{% endblocktrans %}

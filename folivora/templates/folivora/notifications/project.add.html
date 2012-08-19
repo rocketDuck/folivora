@@ -1,4 +1,2 @@
 {% load i18n %}
-{% blocktrans with user=log.user name=log.data.name timesince=log.when|timesince %}
-{{ user }} created project “{{ name }}” {{ timesince }} ago.
-{% endblocktrans %}
+{% blocktrans with user=log.user name=log.data.name timesince=log.when|timesince %}{{ user }} created project “{{ name }}” {{ timesince }} ago.{% endblocktrans %}
