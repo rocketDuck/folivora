@@ -76,13 +76,9 @@ class UpdateProjectView(MemberRequiredMixin, TemplateView):
                                        instance=object)
         member_form = self.member_form_class(data, instance=object,
                                              queryset=self.member_qs)
-        add_member_form = CreateProjectMemberForm()
-        add_dependency_form = CreateProjectDependencyForm()
         context.update({
             'dep_form': dep_form,
             'member_form': member_form,
-            'add_member_form': add_member_form,
-            'add_dependency_form': add_dependency_form,
             'project': object,
         })
         return context
