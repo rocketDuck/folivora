@@ -101,4 +101,4 @@ class CreateProjectMemberForm(ModelForm):
 
 
 class CreateProjectDependencyForm(forms.Form):
-    package = forms.CharField(widget=forms.Textarea)
+    packages = forms.CharField(widget=forms.Textarea)

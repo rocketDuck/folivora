@@ -132,6 +132,10 @@ class Project(models.Model):
         Log.objects.create(project=self, type=type,
                            action=action, data=kwargs, user=user)
 
+    def get_requirements(self):
+        query = ProjectDependency.objects.filter(project=self)
+        return "\n".join([d.dependency_string for d in query.all()])
+
     @property
     def owners(self):
         return self.members.filter(projectmember__state=ProjectMember.OWNER)
@@ -149,6 +153,10 @@ class ProjectDependency(models.Model):
         verbose_name = _('project dependency')
         verbose_name_plural = _('project dependencies')
         unique_together = ('project', 'package')
+
+    @property
+    def dependency_string(self):
+        return u"%s==%s" % (self.package.name, self.version)
 
     @property
     def update_available(self):

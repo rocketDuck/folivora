@@ -11,7 +11,8 @@ from django.template.loader import render_to_string
 from django.utils.translation import ugettext as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic.edit import (CreateView, UpdateView, DeleteView,
+    FormView)
 from django.views.generic.list import ListView
 
 from django.contrib import messages
@@ -22,7 +23,7 @@ from .forms import (AddProjectForm, UpdateUserProfileForm,
     ProjectDependencyForm, ProjectMemberForm, CreateProjectMemberForm,
     CreateProjectDependencyForm)
 from .models import (Project, UserProfile, ProjectDependency, ProjectMember,
-    Log)
+    Log, Package)
 from .utils import parse_requirements
 from .utils.views import SortListMixin, MemberRequiredMixin
 
@@ -173,49 +174,45 @@ class CreateProjectMemberView(MemberRequiredMixin, TemplateView):
 project_add_member = CreateProjectMemberView.as_view()
 
 
-class CreateProjectDependencyView(MemberRequiredMixin, TemplateView):
+class UpdateProjectDependencyView(MemberRequiredMixin, FormView):
     form_class = CreateProjectDependencyForm
     allow_only_owner = True
+    template_name = 'folivora/project_dependency_update.html'
+
+    def get_success_url(self):
+        return reverse('folivora_project_update', args=[self.kwargs['slug']])
+
+    def get_object(self, queryset=None):
+        return Project.objects.get(slug=self.kwargs['slug'])
+
+    def get_initial(self):
+        return {'packages': self.project.get_requirements()}
+
+    def get(self, request, *args, **kwargs):
+        self.project = self.get_object()
+        return super(UpdateProjectDependencyView, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        project = Project.objects.get(slug=kwargs['slug'])
-        project_dependeny_query = ProjectDependency.objects.filter(project=project)
-        form = self.form_class(request.POST)
-        if form.is_valid():
-            old_packages = {}
-            for project_dependeny in project_dependeny_query:
-                old_packages[project_dependeny.package.name] = project_dependeny
-
-            packages, missing_packages = parse_requirements(form.cleaned_data['package'])
-            new_packages = []
-            updated_packages = []
-            for package_name, version in packages.iter():
-                # Update old packages
-                if (package_name in old_packages and
-                        old_packages[package_name].version != version):
-                    old_packages[package_name].version = version
-                    old_packages[package_name].save()
-                    updated_packages.append(old_packages[package_name])
-
-                # Append new packages
-                else:
-                    try:
-                        package = Package.objects.get(name=package_name)
-                    except Package.DoesNotExist:
-                        package = Package.create_with_provider_url(package_name)
-                    ProjectDependency.create(project=project, package=package,
-                                             version=version)
-                    new_packages.append(package)
-
-            context = {'new_packages': new_packages,
-                       'updated_packages': updated_packages,
-                       'missing_packages': missing_packages}
-        else:
-            context = {'error': form.errors}
-        return HttpResponse(json.dumps(context))
+        self.project = self.get_object()
+        return super(UpdateProjectDependencyView, self).post(request, *args, **kwargs)
 
 
-project_add_dependency = CreateProjectDependencyView.as_view()
+    def form_valid(self, form):
+        packages, missing_packages = parse_requirements(
+            form.cleaned_data['packages'].splitlines())
+        # TODO check for missing_packages in form validation
+        ProjectDependency.objects.filter(project=self.project).delete()
+        for package_name, version in packages.iteritems():
+            try:
+                package = Package.objects.get(name=package_name)
+            except Package.DoesNotExist:
+                package = Package.create_with_provider_url(package_name)
+            project_dependency = ProjectDependency.objects.create(
+                project=self.project, package=package, version=version)
+        return super(UpdateProjectDependencyView, self).form_valid(form)
+
+
+project_update_dependency = UpdateProjectDependencyView.as_view()
 
 
 class ResignProjectView(MemberRequiredMixin, DeleteView):
