@@ -3,10 +3,13 @@ import mock
 
 from datetime import datetime
 
+from django.conf import settings
 from django.core.files.base import ContentFile
+from django.core import mail
 from django.test import TestCase
 from django.utils.timezone import make_aware
 from django.test.client import Client
+from django.test.utils import override_settings
 
 from django.contrib.auth.models import User
 
@@ -164,6 +167,7 @@ class TestSyncProjectTask(TestCase):
         pkg2 = Package.create_with_provider_url('gunicorn')
         pkg3 = Package.create_with_provider_url('pytz')
         self.project = Project.objects.create(name='test', slug='test')
+        self.user = User.objects.create_user('apollo13', 'mail@example.com', 'pwd')
         ProjectDependency.objects.create(
             project=self.project,
             package=pkg,
@@ -190,6 +194,18 @@ class TestSyncProjectTask(TestCase):
         dep = ProjectDependency.objects.get(project=self.project,
                                             package__name='gunicorn')
         self.assertEqual(dep.update, None)
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    @mock.patch('folivora.models.CheeseShop', CheesyMock)
+    def test_sync_project_sends_mail(self):
+        ProjectMember.objects.create(user=self.user, project=self.project,
+                                     state=ProjectMember.MEMBER)
+        result = tasks.sync_project.apply(args=(self.project.pk,), throw=True)
+        self.assertTrue(result.successful())
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(mail.outbox[0].subject,
+                         '%sNew update available for project "test"'
+                         % settings.EMAIL_SUBJECT_PREFIX)
 
 
 VALID_REQUIREMENTS = 'Django==1.4.1\nSphinx==1.10'

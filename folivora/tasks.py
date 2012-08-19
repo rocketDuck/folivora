@@ -16,6 +16,7 @@ from distutils.version import LooseVersion
 from .models import (SyncState, Package, PackageVersion,
     ProjectDependency, Log, Project)
 from .utils.pypi import CheeseShop
+from .utils.notifications import route_notifications
 
 
 def log_affected_projects(pkg, **kwargs):
@@ -135,6 +136,6 @@ def sync_project(project_pk):
                                    project=project, package=package,
                                    data={'version': versions[-1],
                                          'since': since}))
-
     if log_entries:
         Log.objects.bulk_create(log_entries)
+        route_notifications(*log_entries)
