@@ -3,6 +3,7 @@ import copy
 import json
 
 from django.core.urlresolvers import reverse_lazy, reverse
+from django.db import models
 from django.forms.models import inlineformset_factory
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -28,7 +29,7 @@ from .utils.views import SortListMixin, ProjectMixin
 
 
 folivora_index = TemplateView.as_view(template_name='folivora/index.html')
-folivora_dashboard = TemplateView.as_view(template_name='folivora/dashboard.html')
+
 
 class ListProjectView(LoginRequiredMixin, SortListMixin, ListView):
     model = Project
@@ -42,6 +43,20 @@ class ListProjectView(LoginRequiredMixin, SortListMixin, ListView):
 
 
 project_list = ListProjectView.as_view()
+
+
+class DashboardView(ListProjectView):
+    template_name = 'folivora/dashboard.html'
+    sort_fields = ['name', 'updates', 'rl_date']
+
+    def get_queryset(self):
+        qs = super(DashboardView, self).get_queryset()
+        qs = qs.annotate(updates=models.Count('dependencies__update')) \
+           .annotate(rl_date=models.Min('dependencies__update__release_date'))
+        return qs
+
+
+folivora_dashboard = DashboardView.as_view()
 
 
 class AddProjectView(LoginRequiredMixin, UserFormKwargsMixin, CreateView):

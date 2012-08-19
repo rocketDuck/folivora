@@ -1,8 +1,8 @@
 {% load url from future %}
-{% if sort_field == field %}
-  <a href="{% url 'folivora_project_list' %}?sort={% if sort_order == 'asc' %}-{% endif %}{{ field }}">
+{% if field in sort_fields %}
+  <a href="{% url url %}?sort={% if sort_order == 'asc' %}-{% endif %}{{ field }}">
     {{ verbose_name }}
-    <i class="icon-caret-{% if sort_order == 'asc' %}up{% else %}down{% endif %}"></i>
+    {% if field == sort_field %}<i class="icon-caret-{% if sort_order == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
   </a>
 {% else %}
   {{ verbose_name }}

@@ -1,7 +1,39 @@
 {% extends 'fluid.html' %}
+{% load url from future %}
 {% load i18n %}
 {% block headline %}
   <i class="icon-dashboard"></i> {% trans 'Mission control center' %}
 {% endblock headline %}
 {% block content %}
+<table class="table table-bordered table-striped">
+  <thead>
+    <tr>
+      <th>
+        {% include 'folivora/sort.html' with url='folivora_dashboard' field='name' verbose_name=_('Name') %}
+      </th>
+      <th>
+        {% include 'folivora/sort.html' with url='folivora_dashboard' field='rl_date' verbose_name=_('Update available since') %}
+      </th>
+      <th>
+        {% include 'folivora/sort.html' with url='folivora_dashboard' field='updates' verbose_name=_('Updates') %}
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for project in projects %}
+      <tr>
+        <td>
+          <a href="{{ project.get_absolute_url }}">{{ project.name }}</a>
+        </td>
+        <td class="span3">
+          {{ project.rl_date }}
+        </td>
+        <td class="span2">
+          {{ project.updates }}
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
 {% endblock content %}
