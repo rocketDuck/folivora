@@ -29,7 +29,8 @@ class CheesyMock(object):
 
     def get_changelog(self, hours, force=False):
         return [['pmxbot', '1101.8.1', 1345259834, 'new release'],
-                ['gunicorn', '0.14.6', 1345259834, 'remove']]
+                ['gunicorn', '0.14.6', 1345259834, 'remove'],
+                ['new_package', '0.1', 1345259834, 'new release']]
 
     def get_release_urls(self, name, version):
         return [{'comment_text': '',
@@ -133,6 +134,17 @@ class TestChangelogSync(TestCase):
         self.assertTrue(result.successful())
         pkg = Package.objects.get(name='pmxbot')
         self.assertEqual(pkg.name, 'pmxbot')
+        self.assertEqual(pkg.provider, 'pypi')
+        self.assertEqual(pkg.versions.count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
+
+    @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
+    @mock.patch('folivora.models.Package.sync_versions', stub)
+    def test_new_release_sync_creates_package_on_unknown_package(self):
+        result = tasks.sync_with_changelog.apply(throw=True)
+        self.assertTrue(result.successful())
+        pkg = Package.objects.get(name='new_package')
+        self.assertEqual(pkg.name, 'new_package')
         self.assertEqual(pkg.provider, 'pypi')
         self.assertEqual(pkg.versions.count(), 1)
         self.assertEqual(len(mail.outbox), 1)
