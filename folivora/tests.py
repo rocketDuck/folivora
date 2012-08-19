@@ -52,6 +52,10 @@ class CheesyMock(object):
             return ['0']
 
 
+def stub(*args, **kwargs):
+    return
+
+
 class TestPackageModel(TestCase):
 
     def setUp(self):
@@ -104,8 +108,15 @@ class TestChangelogSync(TestCase):
 
     def setUp(self):
         pkg = Package.create_with_provider_url('pmxbot')
+        dt = make_aware(datetime(2012, 7, 26, 23, 51, 18), pytz.UTC)
+        PackageVersion.objects.create(package=pkg,
+                                      version='1101.8.1',
+                                      release_date=dt)
         pkg2 = Package.create_with_provider_url('gunicorn')
         self.project = Project.objects.create(name='test', slug='test')
+        self.user = User.objects.create_user('apollo13', 'mail@example.com', 'pwd')
+        ProjectMember.objects.create(user=self.user, project=self.project,
+                                     state=ProjectMember.MEMBER)
         ProjectDependency.objects.create(
             project=self.project,
             package=pkg,
@@ -116,6 +127,7 @@ class TestChangelogSync(TestCase):
             version='0.14.6')
 
     @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
+    @mock.patch('folivora.models.Package.sync_versions', stub)
     def test_new_release_sync(self):
         result = tasks.sync_with_changelog.apply(throw=True)
         self.assertTrue(result.successful())
@@ -123,8 +135,10 @@ class TestChangelogSync(TestCase):
         self.assertEqual(pkg.name, 'pmxbot')
         self.assertEqual(pkg.provider, 'pypi')
         self.assertEqual(pkg.versions.count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
 
     @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
+    @mock.patch('folivora.models.Package.sync_versions', stub)
     def test_new_release_sync_dependency_update(self):
         result = tasks.sync_with_changelog.apply(throw=True)
         self.assertTrue(result.successful())
@@ -133,15 +147,19 @@ class TestChangelogSync(TestCase):
                                             project__name='test')
         self.assertEqual(dep.update.version, '1101.8.1')
         self.assertTrue(dep.update_available)
+        self.assertEqual(len(mail.outbox), 1)
 
     @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
+    @mock.patch('folivora.models.Package.sync_versions', stub)
     def test_new_release_sync_log_creation(self):
         result = tasks.sync_with_changelog.apply(throw=True)
         self.assertTrue(result.successful())
         qs = Log.objects.filter(project=self.project, action='new_release')
         self.assertEqual(qs.count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
 
     @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
+    @mock.patch('folivora.models.Package.sync_versions', stub)
     def test_package_removal_sync(self):
         result = tasks.sync_with_changelog.apply(throw=True)
         self.assertTrue(result.successful())
@@ -153,6 +171,7 @@ class TestChangelogSync(TestCase):
         self.assertFalse(dep.update_available)
 
     @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
+    @mock.patch('folivora.models.Package.sync_versions', stub)
     def test_package_removal_sync_log_creation(self):
         result = tasks.sync_with_changelog.apply(throw=True)
         self.assertTrue(result.successful())

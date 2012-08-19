@@ -29,6 +29,7 @@ def log_affected_projects(pkg, **kwargs):
         log = Log(project_id=project, **kwargs)
         log_entries.append(log)
     Log.objects.bulk_create(log_entries)
+    return affected_projects
 
 
 #TODO: send notifications
@@ -76,10 +77,14 @@ def sync_with_changelog():
                 ProjectDependency.objects.filter(package=pkg) \
                                          .update(update=update)
 
-            log_affected_projects(pkg,
-                                  action='new_release',
-                                  type='package',
-                                  data={'version': version})
+            projects = log_affected_projects(pkg,
+                                             action='new_release',
+                                             type='package',
+                                             data={'version': version})
+
+            for project in projects:
+                sync_project.apply(args=(project,))
+
         elif action == 'remove':
             # We only clear versions and set the recent updated version
             # on every project dependency to NULL. This way we can ensure
