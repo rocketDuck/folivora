@@ -1,3 +1,3 @@
 web: env PYTHONUNBUFFERED=true ./manage.py runserver 0.0.0.0:8000
-worker: env PYTHONUNBUFFERED=true ./manage.py celery worker
+worker: env PYTHONUNBUFFERED=true ./manage.py celeryd -E -B --loglevel=INFO
 styles: compass watch folivora/static/folivora
