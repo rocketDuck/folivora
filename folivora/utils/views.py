@@ -85,3 +85,8 @@ class ProjectMixin(object):
         context = super(ProjectMixin, self).get_context_data(**kwargs)
         context['project'] = self.project
         return context
+
+    def get_object(self, queryset=None):
+        if self.model != Project or queryset is not None:
+            return super(ProjectMixin, self).get_object(queryset)
+        return self.project
