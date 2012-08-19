@@ -1,5 +1,7 @@
 from django.conf.urls import patterns, include, url
 
+from . import receivers # register signal handlers
+
 urlpatterns = patterns('folivora.views',
     url(r'^accounts/', include('registration.backends.default.urls')),
     url(r'^accounts/profile/$', 'profile_edit', name='folivora_profile_edit'),
