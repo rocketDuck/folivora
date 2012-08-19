@@ -11,6 +11,6 @@ urlpatterns = patterns('folivora.views',
     url(r'^project/(?P<slug>[\w-]+)/edit/$', 'project_update', name='folivora_project_update'),
     url(r'^project/(?P<slug>[\w-]+)/delete/$', 'project_delete', name='folivora_project_delete'),
     url(r'^project/(?P<slug>[\w-]+)/add_member/$', 'project_add_member', name='folivora_project_member_add'),
-    url(r'^project/(?P<slug>[\w-]+)/add_dependency/$', 'project_update_dependency', name='folivora_project_dependency_update'),
+    url(r'^project/(?P<slug>[\w-]+)/deps/$', 'project_update_dependency', name='folivora_project_dependency_update'),
     url(r'^project/(?P<slug>[\w-]+)/resign/$', 'project_resign', name='folivora_project_resign'),
 )

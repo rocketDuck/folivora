@@ -20,7 +20,7 @@ from braces.views import LoginRequiredMixin, UserFormKwargsMixin
 
 from .forms import (AddProjectForm, UpdateUserProfileForm,
     ProjectDependencyForm, ProjectMemberForm, CreateProjectMemberForm,
-    CreateProjectDependencyForm)
+    UpdateProjectDependencyForm)
 from .models import (Project, UserProfile, ProjectDependency, ProjectMember,
     Log, Package)
 from .utils import parse_requirements
@@ -167,7 +167,7 @@ project_add_member = CreateProjectMemberView.as_view()
 
 
 class UpdateProjectDependencyView(ProjectMixin, FormView):
-    form_class = CreateProjectDependencyForm
+    form_class = UpdateProjectDependencyForm
     allow_only_owner = True
     template_name = 'folivora/project_dependency_update.html'
 
