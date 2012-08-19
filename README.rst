@@ -28,5 +28,8 @@ After that changes are fetched via celery. To run the project use::
 
     foreman start -f Procfile.development
 
-.. _`heroku`: http://folivora.herokuapp.com
 
+You can find some documentation on `readthedocs`_
+
+.. _`heroku`: http://folivora.herokuapp.com
+.. _`readthedocs`: http://folivora.readthedocs.org
