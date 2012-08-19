@@ -24,7 +24,6 @@ from .forms import (AddProjectForm, UpdateUserProfileForm,
 from .models import (Project, UserProfile, ProjectDependency, ProjectMember,
     Log, Package)
 from .utils import parse_requirements
-from .tasks import sync_project
 from .utils.views import SortListMixin, ProjectMixin
 
 
@@ -188,6 +187,8 @@ class UpdateProjectDependencyView(ProjectMixin, FormView):
                                   .values_list('name', 'id'))
 
         add = [(ids[n], new_requirements[n]) for n in new.difference(old) if n in ids]
+        new_objects = [ProjectDependency(project=self.project, package_id=x[0], version=x[1]) for x in add]
+        ProjectDependency.objects.bulk_create(new_objects)
         remove = [(ids[n], old_requirements[n]) for n in old.difference(new) if n in ids]
 
         change = []
@@ -198,7 +199,10 @@ class UpdateProjectDependencyView(ProjectMixin, FormView):
                 continue
             change.append((ids[package], old_requirements[package],
                            new_requirements[package]))
+            ProjectDependency.objects.filter(package_id=ids[package]) \
+                                     .update(version=new_requirements[package])
 
+        ProjectDependency.objects.filter(id__in=[x[0] for x in remove]).delete()
         self.project.process_changes(self.request.user, remove, change, add)
         return super(UpdateProjectDependencyView, self).form_valid(form)
 
