@@ -90,8 +90,8 @@ class UpdateProjectView(MemberRequiredMixin, TemplateView):
         ctx = self.get_context_data(**kwargs)
         dep_form = ctx['dep_form']
         member_form = ctx['member_form']
-        # Ugly, but we need access to the initial dataset!
-        original_data = copy.deepcopy(dep_form._object_dict)
+        original_data = ProjectDependency.objects.in_bulk(
+            dep_form.get_queryset())
         if all([dep_form.is_valid(), member_form.is_valid()]):
             member_form.save()
             dep_form.save()
@@ -211,7 +211,7 @@ class UpdateUserProfileView(LoginRequiredMixin, UpdateView):
         return response
 
     def get_object(self, queryset=None):
-        return self.request.user.get_profile()
+        return UserProfile.objects.get_or_create(user=self.request.user)[0]
 
 
 profile_edit = UpdateUserProfileView.as_view()
