@@ -124,11 +124,13 @@ def sync_project(project_pk):
 
             dependency.update = pv
             dependency.save()
+            tz = timezone.utc
+            since = str(timezone.make_naive(pv.release_date, tz))
             log_entries.append(Log(type='project_dependency',
                                    action='update_available',
                                    project=project, package=package,
                                    data={'version': versions[-1],
-                                         'since': str(pv.release_date)}))
+                                         'since': since}))
 
     if log_entries:
         Log.objects.bulk_create(log_entries)

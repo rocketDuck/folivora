@@ -1,7 +1,7 @@
 {% extends 'page.html' %}
 {% load floppyforms %}
 {% load i18n %}
-{% block headline %}{% trans 'Your profile' %}{% endblock %}
+{% block headline %}<i class="icon-cog"></i> {% trans 'Preferences' %}{% endblock %}
 {% block content %}
 <!--
   Current time: {% now 'DATETIME_FORMAT' %}
@@ -12,7 +12,7 @@
   {% form form using 'floppyforms/layouts/bootstrap.html' %}
   <div class="form-actions">
     <button class="btn btn-primary" type="submit">{% trans 'Save' %}</button>
-    <button class="btn">{% trans 'Cancel' %}</button>
+    <button class="btn" type="reset">{% trans 'Cancel' %}</button>
   </div>
 </form>
 {% endblock content %}

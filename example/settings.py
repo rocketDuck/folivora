@@ -181,3 +181,5 @@ ACCOUNT_ACTIVATION_DAYS = 42
 REGISTRATION_OPEN = True
 
 #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+LOGIN_REDIRECT_URL = '/dashboard/'
