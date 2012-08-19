@@ -327,6 +327,7 @@ class TestProjectViews(TestCase):
         self.c.login(username='admin', password='pwd')
         Package.create_with_provider_url('Django')
         Package.create_with_provider_url('test')
+        self.new_package = Package.create_with_provider_url('new')
 
     def test_app_project_member(self):
         response = self.c.post('/project/test/add_member/',
@@ -357,6 +358,12 @@ class TestProjectViews(TestCase):
         self.assertEqual(response.status_code, 302)
         response = self.c.get('/project/test/deps/')
         self.assertEqual(response.context['form'].initial['packages'], 'Django==1\ntest==2')
+        response = self.c.post('/project/test/deps/',
+                               {'packages': 'Django==2\nnew==3'})
+        self.assertTrue(ProjectDependency.objects.filter(
+            project=self.project, package=self.new_package).exists())
+        response = self.c.post('/project/test/deps/',
+                               {'packages': 'Django==2\nunknown==3'})
 
 
 class TestUserProfileView(TestCase):
