@@ -6,6 +6,7 @@
 <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
   {% csrf_token %}
   {% form form using 'floppyforms/layouts/bootstrap.html' %}
+{% blocktrans %}Note: Unknown requirements (essentially everything not on PyPi) are ignored. Also only exakt requirements (those specified with “==”) are imported, since the system can't guess what you have if you specify “>=” or “<=”. The easiest way is probably to just upload the output of 'pip freeze'{% endblocktrans %}
   <div class="form-actions">
     <button class="btn btn-primary" type="submit">{% trans 'Add project' %}</button>
     <button class="btn" type="reset">{% trans 'Reset' %}</button>

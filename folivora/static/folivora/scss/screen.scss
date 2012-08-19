@@ -7,3 +7,18 @@ body > .navbar .navbar-inner {
 .log {
   min-height: 40px;
 }
+
+
+.hero-unit {
+  h1 {
+    margin-bottom: 20px;
+  }
+  .carousel {
+    margin: auto;
+    width: 640px;
+    p, h3 {
+      color: white;
+    }
+  }
+}
+
