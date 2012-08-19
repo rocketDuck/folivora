@@ -94,9 +94,8 @@ class UpdateProjectView(ProjectMixin, TemplateView):
         if all([dep_form.is_valid(), member_form.is_valid()]):
             member_form.save()
             dep_form.save()
-            ProjectDependency.process_changed_dependencies(dep_form,
+            ProjectDependency.process_formset(dep_form,
                 original_data, self.request.user)
-            sync_project(dep_form.instance.pk)
             messages.success(request, _(u'Updated Project “{name}” '
                 'successfully.').format(name=dep_form.instance.name))
             return HttpResponseRedirect(reverse('folivora_project_update',
@@ -177,18 +176,30 @@ class UpdateProjectDependencyView(ProjectMixin, FormView):
         return reverse('folivora_project_update', args=[self.kwargs['slug']])
 
     def get_initial(self):
-        return {'packages': self.project.get_requirements()}
+        return {'packages': self.project.requirements}
 
     def form_valid(self, form):
-        packages = form.cleaned_data['packages']
-        ProjectDependency.objects.filter(project=self.project).delete()
-        for package_name, version in packages.iteritems():
-            try:
-                package = Package.objects.get(name=package_name)
-            except Package.DoesNotExist:
-                package = Package.create_with_provider_url(package_name)
-            project_dependency = ProjectDependency.objects.create(
-                project=self.project, package=package, version=version)
+        new_requirements = form.cleaned_data['packages']
+        old_requirements = self.project.requirement_dict
+        new = set(new_requirements.keys())
+        old = set(old_requirements.keys())
+
+        ids = dict(Package.objects.filter(name__in=old.union(new)) \
+                                  .values_list('name', 'id'))
+
+        add = [(ids[n], new_requirements[n]) for n in new.difference(old) if n in ids]
+        remove = [(ids[n], old_requirements[n]) for n in old.difference(new) if n in ids]
+
+        change = []
+        for package in new.intersection(old):
+            if not package in ids:
+                continue
+            if old_requirements[package] == new_requirements[package]:
+                continue
+            change.append((ids[package], old_requirements[package],
+                           new_requirements[package]))
+
+        self.project.process_changes(self.request.user, remove, change, add)
         return super(UpdateProjectDependencyView, self).form_valid(form)
 
 
