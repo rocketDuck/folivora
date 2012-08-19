@@ -20,6 +20,7 @@ from .utils.notifications import route_notifications
 
 
 def log_affected_projects(pkg, **kwargs):
+    """Create log entries for all projects that require `pkg`."""
     affected_projects = Project.objects.filter(dependencies__package=pkg) \
                                        .values_list('id', flat=True)
 
@@ -107,6 +108,12 @@ def sync_with_changelog():
 
 @task
 def sync_project(project_pk):
+    """Syncronize all dependencies of a project.
+
+    This syncronizes all package versions and creates proper
+    log entries on updates as well as starts the notification
+    routing.
+    """
     project = Project.objects.get(pk=project_pk)
 
     log_entries = []
