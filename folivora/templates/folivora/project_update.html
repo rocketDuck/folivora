@@ -3,22 +3,12 @@
 {% load i18n %}
 {% block headline %}{% trans 'Edit Project' %}{% endblock %}
 {% block content %}
-<a class="btn btn-info pull-right">{% trans 'Add member' %}</span>
+<a class="btn btn-info pull-right" href="{% url folivora_project_member_add project.slug %}">
+  {% trans 'Add member' %}
+</a>
 <a class="btn btn-info pull-right" href="{% url folivora_project_dependency_update project.slug %}">
   {% trans 'Update dependencies' %}
 </a>
-<div id="add_member" style="display:none;">
-  <form action="{% url folivora_project_member_add project.slug %}" method="post">
-    {% csrf_token %}
-    {% form add_member_form using 'floppyforms/layouts/bootstrap.html' %}
-    <div class="form-actions">
-      <button class="btn btn-primary" type="submit">{% trans 'Append member' %}</button>
-      <button class="btn">{% trans 'Cancel' %}</button>
-    </div>
-  </form>
-</div>
-
-
 <form class="form-horizontal" action="" method="post">
   <h2>{% trans 'Edit members:' %}</h2>
   {% csrf_token %}
@@ -34,12 +24,11 @@
     <tbody>
     {% for f in member_form.forms %}
       <tr>
-        {% include 'folivora/project_edit_member_row.html' with username=f.instance.user.username state=f.state%}
+        <td>{{ f.id }}{{ f.instance.user.username }}</td>
+        <td>{{ f.state }}</td>
+        <td>{{ f.DELETE }}</td>
       </tr>
     {% endfor %}
-      <tr id="empty_member_row" style="display:none">
-        {% include 'folivora/project_edit_member_row.html' with f=member_form.empty_form username='USERNAME' %}
-      </tr>
     </tbody>
   </table>
 

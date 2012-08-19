@@ -12,7 +12,7 @@ from django.utils.translation import ugettext as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import (CreateView, UpdateView, DeleteView,
-    FormView)
+    FormView, FormMixin)
 from django.views.generic.list import ListView
 
 from django.contrib import messages
@@ -146,29 +146,27 @@ class DetailProjectView(MemberRequiredMixin, DetailView):
 project_detail = DetailProjectView.as_view()
 
 
-class CreateProjectMemberView(MemberRequiredMixin, TemplateView):
+class CreateProjectMemberView(MemberRequiredMixin, CreateView):
+    model = ProjectMember
     form_class = CreateProjectMemberForm
     allow_only_owner = True
+    template_name = 'folivora/project_member_add.html'
 
-    def post(self, request, *args, **kwargs):
-        project = Project.objects.get(slug=kwargs['slug'])
-        form = self.form_class(request.POST)
-        if form.is_valid():
-            project_member = form.save(commit=False)
-            project_member.project = project
-            project_member.state = ProjectMember.MEMBER
-            user = project_member.user
-            if (ProjectMember.objects.filter(project=project)
-                                     .filter(user=user).exists()):
-                context = {'error': _('"%s" is already a member of this project'
-                                       % user)}
-            else:
-                project_member.save()
-                context = {'id': project_member.id,
-                           'username': project_member.user.username}
+    def get_success_url(self):
+        return reverse('folivora_project_update', args=[self.kwargs['slug']])
+
+    def form_valid(self, form):
+        project = Project.objects.get(slug=self.kwargs['slug'])
+        self.object = form.save(commit=False)
+        self.object.project = project
+        user = self.object.user
+        if (ProjectMember.objects.filter(project=project)
+                         .filter(user=user).exists()):
+            pass
+            # TODO: do not validate the form
         else:
-            context = {'error': form.errors}
-        return HttpResponse(json.dumps(context))
+            self.object.save()
+        return FormMixin.form_valid(self, form)
 
 
 project_add_member = CreateProjectMemberView.as_view()

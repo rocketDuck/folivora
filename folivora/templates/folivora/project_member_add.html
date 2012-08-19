@@ -1,13 +1,13 @@
 {% extends 'page.html' %}
 {% load floppyforms %}
 {% load i18n %}
-{% block headline %}{% trans 'Edit dependencies' %}{% endblock %}
+{% block headline %}{% trans 'Add member' %}{% endblock %}
 {% block content %}
 <form action="" method="post">
 {% csrf_token %}
 {% form form using 'floppyforms/layouts/bootstrap.html' %}
 <div class="form-actions">
-  <button class="btn btn-primary" type="submit">{% trans 'Update dependencies' %}</button>
+  <button class="btn btn-primary" type="submit">{% trans 'Append member' %}</button>
   <button class="btn">{% trans 'Cancel' %}</button>
 </div>
 </form>

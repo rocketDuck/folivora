@@ -97,7 +97,7 @@ class ProjectMemberForm(ModelForm):
 class CreateProjectMemberForm(ModelForm):
     class Meta:
         model = ProjectMember
-        fields = ('user', )
+        fields = ('user', 'state' )
 
 
 class CreateProjectDependencyForm(forms.Form):
