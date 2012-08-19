@@ -7,15 +7,12 @@ import pytz
 
 from django.conf import settings
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _, ugettext
 from django.utils.timesince import timesince
 from django.utils.timezone import make_aware, now
 
 from django.contrib.auth.models import User
-from django.contrib.auth.signals import user_logged_in
 
 from django_orm.postgresql import hstore
 
@@ -249,21 +246,3 @@ class UserProfile(models.Model):
 
     def get_absolute_url(self):
         return reverse('folivora_profile_edit')
-
-
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        UserProfile.objects.create(user=instance)
-
-
-@receiver(user_logged_in)
-def set_user_lang(sender, request, user, **kwargs):
-    try:
-        profile = user.get_profile()
-        if profile.language:
-            request.session['django_language'] = profile.language
-        if profile.timezone:
-            request.session['django_timezone'] = profile.timezone
-    except UserProfile.DoesNotExist:
-        pass

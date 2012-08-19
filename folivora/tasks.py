@@ -48,6 +48,8 @@ def sync_with_changelog():
         create				- Create a new package
         update %(type)s                 - Update some detailed classifiers
     """
+    next_last_sync = timezone.now()
+
     state, created = SyncState.objects.get_or_create(
         type=SyncState.CHANGELOG,
         defaults={'last_sync': timezone.now()})
@@ -91,9 +93,11 @@ def sync_with_changelog():
                                   data={'package': package})
 
         elif action == 'create':
-            #TODO: do we need to create a log or handle any other special things?
-            #      Looks damn empty :-)
-            Package.objects.create_with_provider(package)
+            if not Package.objects.filter(name=package).exists():
+                Package.objects.create_with_provider(package)
+
+    SyncState.objects.filter(type=SyncState.CHANGELOG) \
+                     .update(last_sync=next_last_sync)
 
 
 @task

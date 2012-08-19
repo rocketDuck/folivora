@@ -1,4 +1,4 @@
-# Django settings for example project.
+from datetime import timedelta
 gettext = lambda s: s
 
 DEBUG = True
@@ -173,6 +173,13 @@ djcelery.setup_loader()
 
 # Use django database
 BROKER_URL = 'django://'
+
+CELERYBEAT_SCHEDULE = {
+    'sync_with_changelog': {
+        'task': 'folivora.tasks.sync_with_changelog',
+        'schedule': timedelta(minutes=10),
+    },
+}
 
 CELERY_TIMEZONE = 'UTC'
 
