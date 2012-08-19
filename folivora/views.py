@@ -19,9 +19,11 @@ from django.contrib import messages
 from braces.views import LoginRequiredMixin, UserFormKwargsMixin
 
 from .forms import (AddProjectForm, UpdateUserProfileForm,
-    ProjectDependencyForm, ProjectMemberForm, CreateProjectMemberForm)
+    ProjectDependencyForm, ProjectMemberForm, CreateProjectMemberForm,
+    CreateProjectDependencyForm)
 from .models import (Project, UserProfile, ProjectDependency, ProjectMember,
     Log)
+from .utils import parse_requirements
 from .utils.views import SortListMixin, MemberRequiredMixin
 
 
@@ -74,10 +76,12 @@ class UpdateProjectView(MemberRequiredMixin, TemplateView):
         member_form = self.member_form_class(data, instance=object,
                                              queryset=self.member_qs)
         add_member_form = CreateProjectMemberForm()
+        add_dependency_form = CreateProjectDependencyForm()
         context.update({
             'dep_form': dep_form,
             'member_form': member_form,
             'add_member_form': add_member_form,
+            'add_dependency_form': add_dependency_form,
             'project': object,
         })
         return context
@@ -142,13 +146,12 @@ project_detail = DetailProjectView.as_view()
 
 
 class CreateProjectMemberView(MemberRequiredMixin, TemplateView):
-    model = ProjectMember
     form_class = CreateProjectMemberForm
     allow_only_owner = True
 
     def post(self, request, *args, **kwargs):
         project = Project.objects.get(slug=kwargs['slug'])
-        form = CreateProjectMemberForm(request.POST)
+        form = self.form_class(request.POST)
         if form.is_valid():
             project_member = form.save(commit=False)
             project_member.project = project
@@ -168,6 +171,51 @@ class CreateProjectMemberView(MemberRequiredMixin, TemplateView):
 
 
 project_add_member = CreateProjectMemberView.as_view()
+
+
+class CreateProjectDependencyView(MemberRequiredMixin, TemplateView):
+    form_class = CreateProjectDependencyForm
+    allow_only_owner = True
+
+    def post(self, request, *args, **kwargs):
+        project = Project.objects.get(slug=kwargs['slug'])
+        project_dependeny_query = ProjectDependency.objects.filter(project=project)
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            old_packages = {}
+            for project_dependeny in project_dependeny_query:
+                old_packages[project_dependeny.package.name] = project_dependeny
+
+            packages, missing_packages = parse_requirements(form.cleaned_data['package'])
+            new_packages = []
+            updated_packages = []
+            for package_name, version in packages.iter():
+                # Update old packages
+                if (package_name in old_packages and
+                        old_packages[package_name].version != version):
+                    old_packages[package_name].version = version
+                    old_packages[package_name].save()
+                    updated_packages.append(old_packages[package_name])
+
+                # Append new packages
+                else:
+                    try:
+                        package = Package.objects.get(name=package_name)
+                    except Package.DoesNotExist:
+                        package = Package.create_with_provider_url(package_name)
+                    ProjectDependency.create(project=project, package=package,
+                                             version=version)
+                    new_packages.append(package)
+
+            context = {'new_packages': new_packages,
+                       'updated_packages': updated_packages,
+                       'missing_packages': missing_packages}
+        else:
+            context = {'error': form.errors}
+        return HttpResponse(json.dumps(context))
+
+
+project_add_dependency = CreateProjectDependencyView.as_view()
 
 
 class ResignProjectView(MemberRequiredMixin, DeleteView):

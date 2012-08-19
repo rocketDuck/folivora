@@ -2,6 +2,10 @@ $('#add_member_button').click(function() {
     $('#add_member').slideToggle();
 });
 
+$('#add_dependency_button').click(function() {
+    $('#add_dependency').slideToggle();
+});
+
 $('#id_projectmember_set-__prefix__-state').removeAttr('required');
 
 $('#add_member form').ajaxForm({

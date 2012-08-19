@@ -2,7 +2,6 @@ from itertools import izip
 
 import pytz
 
-from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy, gettext as _
 
@@ -99,3 +98,7 @@ class CreateProjectMemberForm(ModelForm):
     class Meta:
         model = ProjectMember
         fields = ('user', )
+
+
+class CreateProjectDependencyForm(forms.Form):
+    package = forms.CharField(widget=forms.Textarea)

@@ -4,12 +4,23 @@
 {% block headline %}{% trans 'Edit Project' %}{% endblock %}
 {% block content %}
 <span id="add_member_button" class="btn btn-info pull-right">{% trans 'Add member' %}</span>
+<span id="add_dependency_button" class="btn btn-info pull-right">{% trans 'Add dependencies' %}</span>
 <div id="add_member" style="display:none;">
   <form action="{% url folivora_project_member_add project.slug %}" method="post">
     {% csrf_token %}
     {% form add_member_form using 'floppyforms/layouts/bootstrap.html' %}
     <div class="form-actions">
-      <button class="btn btn-primary" type="submit">{% trans 'Append' %}</button>
+      <button class="btn btn-primary" type="submit">{% trans 'Append member' %}</button>
+      <button class="btn">{% trans 'Cancel' %}</button>
+    </div>
+  </form>
+</div>
+<div id="add_dependency" style="display:none;">
+  <form action="{% url folivora_project_dependency_add project.slug %}" method="post">
+    {% csrf_token %}
+    {% form add_dependency_form using 'floppyforms/layouts/bootstrap.html' %}
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">{% trans 'Append dependencies' %}</button>
       <button class="btn">{% trans 'Cancel' %}</button>
     </div>
   </form>
@@ -57,6 +68,11 @@
         <td>{{ f.DELETE }}</td>
       </tr>
     {% endfor %}
+      <tr id="empty_package_row" style="display:none">
+        <td>{{ f.id }}{{ f.instance.package.name }}</td>
+        <td>{{ f.version }}</td>
+        <td>{{ f.DELETE }}</td>
+      </tr>
     </tbody>
   </table>
   <div class="form-actions">
