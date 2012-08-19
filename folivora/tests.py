@@ -271,11 +271,10 @@ class TestProjectViews(TestCase):
         self.c.login(username='admin', password='pwd')
 
     def test_app_project_member(self):
-        response = self.c.post('/project/test/add/', {'user': self.user.id})
-        self.assertEqual(response.status_code, 200)
-        id = ProjectMember.objects.filter(project=self.project)[1].id
-        self.assertEqual(response.content,
-            '{"username": "apollo13", "id": %d}' % id)
+        response = self.c.post('/project/test/add_member/',
+                               {'user': self.user.id,
+                                'state': ProjectMember.MEMBER})
+        self.assertEqual(response.status_code, 302)
 
     def test_resign_project(self):
         self.c.login(username='apollo13', password='pwd')
