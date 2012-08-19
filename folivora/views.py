@@ -80,6 +80,11 @@ class AddProjectView(LoginRequiredMixin, UserFormKwargsMixin, CreateView):
     form_class = AddProjectForm
     template_name_suffix = '_add'
 
+    def form_valid(self, form):
+        messages.success(self.request, _('Project created successfully. Please'
+            ' give us a minute to sync your project with PyPi.'))
+        return super(AddProjectView, self).form_valid(form)
+
 
 project_add = AddProjectView.as_view()
 
