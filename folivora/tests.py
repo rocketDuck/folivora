@@ -397,6 +397,9 @@ class TestProjectViews(TestCase):
         response = self.c.post('/project/test/deps/',
                                {'packages': 'Django==2\nunknown==3'})
         self.assertEqual(response.status_code, 200)
+        response = self.c.post('/project/test/deps/',
+                               {'packages': 'FAIL'})
+        self.assertEqual(response.status_code, 200)
 
 
 class TestUserProfileView(TestCase):
