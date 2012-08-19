@@ -1,13 +1,8 @@
 # -*- coding: utf-8 -*-
-import copy
-import json
-
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.db import models
 from django.forms.models import inlineformset_factory
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
-from django.template.loader import render_to_string
+from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
@@ -24,7 +19,6 @@ from .forms import (AddProjectForm, UpdateUserProfileForm,
     UpdateProjectDependencyForm)
 from .models import (Project, UserProfile, ProjectDependency, ProjectMember,
     Log, Package)
-from .utils import parse_requirements
 from .utils.views import SortListMixin, ProjectMixin
 
 
@@ -62,7 +56,8 @@ class DashboardView(ListProjectView):
         l = l.filter(project__members=self.request.user).order_by('-when')[:5]
         # Find all updates and group them by package__name (in the template)
         u = ProjectDependency.objects
-        u = u.filter(project__members=self.request.user, update__isnull=False) \
+        u = u.filter(project__members=self.request.user,
+                     update__isnull=False) \
              .values('project__name',
                      'package__name',
                      'update__version').order_by('package__name')
@@ -93,11 +88,13 @@ class UpdateProjectView(ProjectMixin, TemplateView):
     model = Project
     template_name = 'folivora/project_update.html'
 
-    dep_qs = ProjectDependency.objects.select_related('package').order_by('package__name')
+    dep_qs = ProjectDependency.objects.select_related('package') \
+                                      .order_by('package__name')
     dep_form_class = inlineformset_factory(Project, ProjectDependency, extra=0,
         form=ProjectDependencyForm)
 
-    member_qs = ProjectMember.objects.select_related('user').order_by('user__username')
+    member_qs = ProjectMember.objects.select_related('user') \
+                                     .order_by('user__username')
     member_form_class = inlineformset_factory(Project, ProjectMember, extra=0,
         form=ProjectMemberForm)
 
@@ -219,15 +216,17 @@ class UpdateProjectDependencyView(ProjectMixin, FormView):
         new = set(new_requirements.keys())
         old = set(old_requirements.keys())
 
-        ids = dict(Package.objects.filter(name__in=old.union(new)) \
+        ids = dict(Package.objects.filter(name__in=old.union(new))
                                   .values_list('name', 'id'))
 
-        add = [(ids[n], new_requirements[n]) for n in new.difference(old) if n in ids]
+        add = [(ids[n], new_requirements[n]) for n in new.difference(old)
+               if n in ids]
         new_objects = [ProjectDependency(project=self.project,
                                          package_id=x[0], version=x[1])
                        for x in add]
         ProjectDependency.objects.bulk_create(new_objects)
-        remove = [(ids[n], old_requirements[n]) for n in old.difference(new) if n in ids]
+        remove = [(ids[n], old_requirements[n]) for n in old.difference(new)
+                  if n in ids]
 
         change = []
         for package in new.intersection(old):

@@ -8,8 +8,7 @@ import pytz
 from django.conf import settings
 from django.db import models
 from django.core.urlresolvers import reverse
-from django.utils.translation import ugettext_lazy as _, ugettext
-from django.utils.timesince import timesince
+from django.utils.translation import ugettext_lazy as _
 from django.utils.timezone import make_aware, now
 
 from django.contrib.auth.models import User
@@ -123,8 +122,6 @@ class Project(models.Model):
         return 'folivora_project_detail', (), {'slug': self.slug}
 
     def create_logentry(self, type, action, user=None, **kwargs):
-        when = kwargs.pop('when', now())
-        package = kwargs.pop('package', None)
         Log.objects.create(project=self, type=type,
                            action=action, data=kwargs, user=user)
 

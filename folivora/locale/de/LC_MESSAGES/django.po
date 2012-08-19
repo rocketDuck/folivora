@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-08-19 11:41+0000\n"
-"PO-Revision-Date: 2012-08-19 13:41+0200\n"
-"Last-Translator: Oskar Hahn <mail@oshahn.de>\n"
+"POT-Creation-Date: 2012-08-19 16:34+0000\n"
+"PO-Revision-Date: 2012-08-19 18:34+0100\n"
+"Last-Translator: Florian Apolloner <apollo13@apolloner.eu>\n"
 "Language-Team: Deutsch <mail@oshahn.de>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
@@ -19,152 +19,172 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Gtranslator 2.91.5\n"
 
-#: forms.py:73 models.py:247
+#: forms.py:70
+#: models.py:241
 msgid "Timezone"
 msgstr "Zeitzone"
 
 #: forms.py:112
 #, python-format
-msgid "could not parse the following dependencies: %s"
-msgstr "Konnte die folgenden a Abhängigkeiten nicht analysieren: %s"
+msgid "Could not find the following dependencies: %s"
+msgstr "Konnte die folgenden Abhängigkeiten nicht finden: %s"
 
-#: models.py:34 models.py:115
+#: forms.py:116
+#, python-format
+msgid "Could not parse the following dependencies: %s"
+msgstr "Konnte die folgenden Abhängigkeiten nicht analysieren: %s"
+
+#: models.py:30
+#: models.py:111
 msgid "name"
 msgstr "Name"
 
-#: models.py:35
+#: models.py:31
 msgid "url"
 msgstr "Url"
 
-#: models.py:36
+#: models.py:32
 msgid "provider"
 msgstr "Anbieter"
 
-#: models.py:69 models.py:81 models.py:180 models.py:212
+#: models.py:65
+#: models.py:77
+#: models.py:174
+#: models.py:206
 msgid "package"
 msgstr "Paket"
 
-#: models.py:70
+#: models.py:66
 msgid "packages"
 msgstr "Pakete"
 
-#: models.py:83 models.py:181
+#: models.py:79
+#: models.py:175
 msgid "version"
 msgstr "Version"
 
-#: models.py:84
+#: models.py:80
 msgid "release date"
 msgstr "Erscheinungsdatum"
 
-#: models.py:87
+#: models.py:83
 msgid "package version"
 msgstr "Paket Version"
 
-#: models.py:88
+#: models.py:84
 msgid "package versions"
 msgstr "Paket Versionen"
 
-#: models.py:98
+#: models.py:94
 msgid "Owner"
 msgstr "Besitzer"
 
-#: models.py:99 templates/folivora/project_update.html:16
+#: models.py:95
+#: templates/folivora/project_update.html:16
 msgid "Member"
 msgstr "Mitglied"
 
-#: models.py:102 models.py:121 models.py:178 models.py:211
+#: models.py:98
+#: models.py:117
+#: models.py:172
+#: models.py:205
 msgid "project"
 msgstr "Project"
 
-#: models.py:103 models.py:214
+#: models.py:99
+#: models.py:208
 msgid "user"
 msgstr "User"
 
-#: models.py:104
+#: models.py:100
 msgid "state"
 msgstr "Status"
 
-#: models.py:105
+#: models.py:101
 msgid "Email"
 msgstr "E-Mail"
 
-#: models.py:106
+#: models.py:102
 msgid "Jabber"
 msgstr "Jabber"
 
-#: models.py:109
+#: models.py:105
 msgid "project member"
 msgstr "Projekt Mitglied"
 
-#: models.py:110
+#: models.py:106
 msgid "project members"
 msgstr "Projekt Mitglieder"
 
-#: models.py:116
+#: models.py:112
 msgid "slug"
 msgstr "slug"
 
-#: models.py:118
+#: models.py:114
 msgid "members"
 msgstr "Mitglieder"
 
-#: models.py:122
+#: models.py:118
 msgid "projects"
 msgstr "Projekte"
 
-#: models.py:182
+#: models.py:176
 msgid "update"
 msgstr "update"
 
-#: models.py:186
+#: models.py:180
 msgid "project dependency"
 msgstr "Projekt Abhängigkeit"
 
-#: models.py:187
+#: models.py:181
 msgid "project dependencies"
 msgstr "Projekt Abhängigkeiten"
 
-#: models.py:215
+#: models.py:209
 msgid "when"
 msgstr "wann"
 
-#: models.py:216
+#: models.py:210
 msgid "action"
 msgstr "Aktion"
 
-#: models.py:217
+#: models.py:211
 msgid "type"
 msgstr "Type"
 
-#: models.py:223
+#: models.py:217
 msgid "log"
 msgstr "Logbuch"
 
-#: models.py:224
+#: models.py:218
 msgid "logs"
 msgstr "Logbücher"
 
-#: models.py:236
+#: models.py:230
 msgid "Changelog"
 msgstr "Änderungshistorie"
 
-#: models.py:240
+#: models.py:234
 msgid "Last Sync"
 msgstr "Letzte Synconisation"
 
-#: models.py:245
+#: models.py:239
 msgid "Language"
 msgstr "Sprache"
 
-#: models.py:248
+#: models.py:242
 msgid "JID"
 msgstr "JID"
 
-#: views.py:98
+#: views.py:79
+msgid "Project created successfully. Please give us a minute to sync your project with PyPi."
+msgstr "Projekt erfolgreich erstellt. Bitte gib uns eine Minute Zeit während wir dein Projekt mit PyPi synchronisieren."
+
+#: views.py:131
 msgid "Updated Project “{name}” successfully."
 msgstr "Projekt „{name}“ erfolgreich angepasst."
 
-#: views.py:115
+#: views.py:148
 msgid "Deleted project “{name}” successfully."
 msgstr "Projekt „{name}“ erfolgreich gelöscht."
 
@@ -172,19 +192,23 @@ msgstr "Projekt „{name}“ erfolgreich gelöscht."
 msgid "Dashboard"
 msgstr "Dashboard"
 
-#: templates/base.html:18 templates/folivora/project_list.html:4
+#: templates/base.html:18
+#: templates/folivora/project_list.html:4
 msgid "Projects"
 msgstr "Projekte"
 
-#: templates/base.html:19 templates/folivora/userprofile_form.html:4
+#: templates/base.html:19
+#: templates/folivora/userprofile_form.html:4
 msgid "Preferences"
 msgstr "Einstellungen"
 
-#: templates/base.html:23 templates/registration/registration_form.html:10
+#: templates/base.html:23
+#: templates/registration/registration_form.html:10
 msgid "Register"
 msgstr "Registrieren"
 
-#: templates/base.html:24 templates/registration/login.html:4
+#: templates/base.html:24
+#: templates/registration/login.html:4
 #: templates/registration/login.html:10
 msgid "Login"
 msgstr "Anmelden"
@@ -193,24 +217,94 @@ msgstr "Anmelden"
 msgid "Logout"
 msgstr "Abmelden"
 
-#: templates/folivora/dashboard.html:4
+#: templates/folivora/dashboard.html:5
 msgid "Mission control center"
 msgstr "Mission control center"
 
-#: templates/folivora/index.html:5
+#: templates/folivora/dashboard.html:14
+#: templates/folivora/project_list.html:10
+msgid "Name"
+msgstr "Name"
+
+#: templates/folivora/dashboard.html:17
+msgid "Update available since"
+msgstr "Updates verfügbar seit"
+
+#: templates/folivora/dashboard.html:20
+#: templates/folivora/dashboard.html:56
+msgid "Updates"
+msgstr "Updates"
+
+#: templates/folivora/dashboard.html:23
+#: templates/folivora/project_list.html:13
+msgid "Actions"
+msgstr "Aktionen"
+
+#: templates/folivora/dashboard.html:41
+#: templates/folivora/project_list.html:25
+msgid "edit"
+msgstr "bearbeiten"
+
+#: templates/folivora/dashboard.html:42
+#: templates/folivora/project_list.html:26
+msgid "delete"
+msgstr "Löschen"
+
+#: templates/folivora/dashboard.html:44
+#: templates/folivora/project_list.html:28
+msgid "resign"
+msgstr "Austreten"
+
+#: templates/folivora/dashboard.html:50
+msgid "Recent Changes:"
+msgstr "jüngste Änderungen:"
+
+#: templates/folivora/index.html:6
 msgid "Welcome to Folivora"
 msgstr "Willkommen zu Folivora"
+
+#: templates/folivora/index.html:13
+msgid "Keep an eye on your projects."
+msgstr "Behalte deine Projekte im Auge."
+
+#: templates/folivora/index.html:14
+msgid "Never forget or oversee an available update of your Python projects."
+msgstr "Vergiss oder übersieh nie wieder ein verfügbares Update für deine Python-Projekte."
+
+#: templates/folivora/index.html:20
+msgid "Manage your projects on your own."
+msgstr "Verwalte deine Projekte selbst."
+
+#: templates/folivora/index.html:21
+msgid "You get to create projects and can decide who has access to them."
+msgstr "Du kannst Projekte erstellen und entscheiden wer Zugriff darauf hat."
+
+#: templates/folivora/index.html:27
+msgid "Fully localized..."
+msgstr "Komplett lokalisiert…"
+
+#: templates/folivora/index.html:28
+msgid "... cause you'll never know when you need it."
+msgstr "… weil du niemals weißt wann du es brauchst."
+
+#: templates/folivora/index.html:36
+msgid "You get to define your projects with their dependencies and we will check for you if there are any updates available for your packages. If we find updates, we will notify you promplty. Creating a project is just a 'pip freeze' call away. Try it with the demo user (password: demo, username: demo)."
+msgstr "Du definierst deine Projekte und Abhängigkeiten und wir überprüfen ob es Updates dafür gibt. Sollten wir Updates finden wirst du sofort benachrichtigt. Ein eigenese Projekt ist nur einen 'pip freeze' Aufruf entfernt. Probier es mit dem Demo User (passwort: demo, benutzername: demo)."
 
 #: templates/folivora/project_add.html:4
 msgid "Create project"
 msgstr "Projekt anlegen"
 
-#: templates/folivora/project_add.html:10
+#: templates/folivora/project_add.html:9
+msgid "Note: Unknown requirements (essentially everything not on PyPi) are ignored. Also only exakt requirements (those specified with “==”) are imported, since the system can't guess what you have if you specify “>=” or “<=”. The easiest way is probably to just upload the output of 'pip freeze'"
+msgstr "Anmerkung: Unbekannte Abhängigkeiten (alles was nicht auf PyPi zu finden ist) werden ignoriert. Außerdem werden nur exakte Abhängigkeiten (die mit „==“ spezifiziert wurden) importiert, da das System nicht weiß welche Version bei „>=” oder „<=” gemeint ist. Der einfachste Weg an eine exakte Abhängigkeitsliste zu kommen ist es das Resultat von 'pip freeze' hochzuladen"
+
+#: templates/folivora/project_add.html:11
 #: templates/folivora/project_list.html:4
 msgid "Add project"
 msgstr "Projekt hinzufügen"
 
-#: templates/folivora/project_add.html:11
+#: templates/folivora/project_add.html:12
 #: templates/folivora/project_update.html:57
 #: templates/folivora/userprofile_form.html:15
 #: templates/registration/login.html:11
@@ -265,28 +359,8 @@ msgid "Upgrades available for:"
 msgstr "Aktualisierungen verfügbar für:"
 
 #: templates/folivora/project_detail.html:22
-msgid "Other packages"
-msgstr "Andere Pakete"
-
-#: templates/folivora/project_list.html:10
-msgid "Name"
-msgstr "Name"
-
-#: templates/folivora/project_list.html:13
-msgid "Actions"
-msgstr "Aktionen"
-
-#: templates/folivora/project_list.html:25
-msgid "edit"
-msgstr "bearbeiten"
-
-#: templates/folivora/project_list.html:26
-msgid "delete"
-msgstr "Löschen"
-
-#: templates/folivora/project_list.html:28
-msgid "resign"
-msgstr "Austreten"
+msgid "Current packages:"
+msgstr "Aktuelle Pakete:"
 
 #: templates/folivora/project_member_add.html:3
 #: templates/folivora/project_member_add.html:9
@@ -354,39 +428,23 @@ msgstr "%(user)s hat das Projekt „%(name)s“ vor %(timesince)s angelegt."
 
 #: templates/folivora/notifications/project_dependency.add.html:2
 #, python-format
-msgid ""
-"%(user)s added %(package)s @ %(version)s to the dependencies %(timesince)s "
-"ago."
-msgstr ""
-"%(user)s fügte %(package)s @ %(version)s zu den Abhängigkeiten vor "
-"%(timesince)s hinzu."
+msgid "%(user)s added %(package)s @ %(version)s to the dependencies %(timesince)s ago."
+msgstr "%(user)s fügte %(package)s @ %(version)s zu den Abhängigkeiten vor %(timesince)s hinzu."
 
 #: templates/folivora/notifications/project_dependency.remove.html:2
 #, python-format
-msgid ""
-"%(user)s removed %(package)s @ %(version)s from the dependencies "
-"%(timesince)s ago."
-msgstr ""
-"%(user)s löschte %(package)s @ %(version)s von den Abhängigkeiten vor "
-"%(timesince)s."
+msgid "%(user)s removed %(package)s @ %(version)s from the dependencies %(timesince)s ago."
+msgstr "%(user)s löschte %(package)s @ %(version)s von den Abhängigkeiten vor %(timesince)s."
 
 #: templates/folivora/notifications/project_dependency.update.html:2
 #, python-format
-msgid ""
-"%(user)s updated %(package)s from %(old_version)s to %(version)s "
-"%(timesince)s ago."
-msgstr ""
-"%(user)s aktualisierte %(package)s von %(old_version)s zu %(version)s vor "
-"%(timesince)s."
+msgid "%(user)s updated %(package)s from %(old_version)s to %(version)s %(timesince)s ago."
+msgstr "%(user)s aktualisierte %(package)s von %(old_version)s zu %(version)s vor %(timesince)s."
 
 #: templates/folivora/notifications/project_dependency.update_available.html:2
 #, python-format
-msgid ""
-"Version <b>%(version)s of %(package)s</b> available on PyPI since "
-"%(timesince)s."
-msgstr ""
-"Version <b>%(version)s von %(package)s</b> ist verfügbar auf PyPI seit "
-"%(timesince)s."
+msgid "Version <b>%(version)s of %(package)s</b> available on PyPI since %(timesince)s."
+msgstr "Version <b>%(version)s von %(package)s</b> ist verfügbar auf PyPI seit %(timesince)s."
 
 #: templates/registration/activate.html:5
 msgid "Account activation failed."
@@ -394,12 +452,8 @@ msgstr "Die Nutzerkontoaktivierung ist Fehlgeschlagen."
 
 #: templates/registration/activate.html:7
 #, python-format
-msgid ""
-"Account activation faild. Please check your activation key: "
-"%(activation_key)s"
-msgstr ""
-"Nutzerkontoaktivierung ist fehlgeschlagen. Bitte kontrolliere deinen "
-"Aktivierungsschlüssel: %(activation_key)s"
+msgid "Account activation faild. Please check your activation key: %(activation_key)s"
+msgstr "Nutzerkontoaktivierung ist fehlgeschlagen. Bitte kontrolliere deinen Aktivierungsschlüssel: %(activation_key)s"
 
 #: templates/registration/activation_complete.html:5
 msgid "Account sucessfully activated"
@@ -440,11 +494,8 @@ msgid "Thank you for your registration!"
 msgstr "Danke für deine Registrierung!"
 
 #: templates/registration/registration_complete.html:7
-msgid ""
-"An activation mail will arrive shortly. Please also check your spam folder."
-msgstr ""
-"Eine Aktivierungsmail wird dich in kürze erreichen. Bitte kontrolliere "
-"ebenfalls deinen Spam-Ordner"
+msgid "An activation mail will arrive shortly. Please also check your spam folder."
+msgstr "Eine Aktivierungsmail wird dich in kürze erreichen. Bitte kontrolliere ebenfalls deinen Spam-Ordner"
 
 #: templates/registration/registration_form.html:4
 msgid "Signup"
@@ -452,6 +503,5 @@ msgstr "Anmelden"
 
 #: utils/forms.py:64
 msgid "The entered Jabber address is invalid. Please check your input."
-msgstr ""
-"Die eingegebene Jabber Adresse ist ungültig. Bitte kontrolliere deine "
-"Eingabe."
+msgstr "Die eingegebene Jabber Adresse ist ungültig. Bitte kontrolliere deine Eingabe."
+

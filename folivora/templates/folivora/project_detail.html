@@ -19,7 +19,7 @@
       {% if dep.grouper %}
         <h4><i class="icon-bolt"></i> {% trans 'Upgrades available for:' %}</h4>
       {% else %}
-        <h4>{% trans 'Other packages' %}</h4>
+        <h4>{% trans 'Current packages:' %}</h4>
       {% endif %}
       <ul>
         {% for d in dep.list %}

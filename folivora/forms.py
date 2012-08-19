@@ -1,5 +1,3 @@
-from itertools import izip
-
 import pytz
 
 from django.core.exceptions import ValidationError
@@ -50,7 +48,6 @@ class AddProjectForm(ModelForm):
         return project_deps
 
     def save(self, commit=True):
-        assert commit == True
         project = super(AddProjectForm, self).save(True)
         project.create_logentry('project', 'add', self.user, name=project.name)
         ProjectMember.objects.create(user=self.user, state=ProjectMember.OWNER,
@@ -97,7 +94,7 @@ class ProjectMemberForm(ModelForm):
 class CreateProjectMemberForm(ModelForm):
     class Meta:
         model = ProjectMember
-        fields = ('user', 'state' )
+        fields = ('user', 'state')
 
 
 class UpdateProjectDependencyForm(forms.Form):
