@@ -323,7 +323,7 @@ class TestUtils(TestCase):
         self.assertFalse(is_valid_jid('example.com'))
 
     def test_parse_requirements(self):
-        packages, missing = parse_requirements(ContentFile(VALID_REQUIREMENTS))
+        packages, missing = parse_requirements(ContentFile(VALID_REQUIREMENTS).readlines())
         self.assertEqual(packages, {'Sphinx': '1.10', 'Django': '1.4.1'})
         self.assertFalse(missing)
         packages, missing = parse_requirements(ContentFile(BROKEN_REQUIREMENTS))

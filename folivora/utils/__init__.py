@@ -2,10 +2,10 @@
 import pkg_resources
 
 
-def parse_requirements(data):
+def parse_requirements(lines):
     missing = []
     packages = {}
-    for line in data.readlines():
+    for line in lines:
         try:
             req = pkg_resources.parse_requirements(line.strip()).next()
         except ValueError as e:
