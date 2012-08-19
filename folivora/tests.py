@@ -342,6 +342,10 @@ class TestProjectViews(TestCase):
         Package.create_with_provider_url('test')
         self.new_package = Package.create_with_provider_url('new')
 
+    def test_dashboard(self):
+        response = self.c.get('/dashboard/')
+        self.assertEqual(response.status_code, 200)
+
     def test_project_list(self):
         response = self.c.get('/projects/')
         self.assertEqual(response.status_code, 200)
