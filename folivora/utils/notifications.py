@@ -24,9 +24,12 @@ def send_update_avilable_notification(log):
         'prefix': settings.EMAIL_SUBJECT_PREFIX,
         'project': log.project.name})
 
-    emails = log.project.members.values_list('email', flat=True)
+    mails = []
+    members = log.project.projectmember_set.all()
+    for member in members:
+        mails.append(member.mail or member.user.email)
 
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, emails,
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, mails,
               fail_silently=False)
 
 
