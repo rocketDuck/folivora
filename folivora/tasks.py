@@ -32,7 +32,6 @@ def log_affected_projects(pkg, **kwargs):
     return affected_projects
 
 
-#TODO: send notifications
 @task
 def sync_with_changelog():
     """Syncronize with pypi changelog.

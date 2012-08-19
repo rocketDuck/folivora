@@ -11,6 +11,10 @@ from django.core.mail import send_mail
 
 
 def route_notifications(*log_entries):
+    """Route notifications to specific endpoints depending on their log action.
+
+    :param log_entries: All log entries where notifications needs to be routed.
+    """
     for entry in log_entries:
         if entry.action in ACTION_MAPPING:
             ACTION_MAPPING[entry.action](entry)
@@ -18,6 +22,10 @@ def route_notifications(*log_entries):
 
 
 def send_update_avilable_notification(log):
+    """Send a notification to all project members that are affected by `log`.
+
+    :param log: Log model that holds information for the notification.
+    """
     message = loader.render_to_string('notifications/update_available.mail.txt',
                                       {'log': log})
     subject = '{prefix}New update available for project "{project}"'.format(**{
