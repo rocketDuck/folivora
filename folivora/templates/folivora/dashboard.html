@@ -1,39 +1,68 @@
 {% extends 'fluid.html' %}
 {% load url from future %}
-{% load i18n %}
+{% load i18n folivora %}
 {% block headline %}
   <i class="icon-dashboard"></i> {% trans 'Mission control center' %}
 {% endblock headline %}
 {% block content %}
-<table class="table table-bordered table-striped">
-  <thead>
-    <tr>
-      <th>
-        {% include 'folivora/sort.html' with url='folivora_dashboard' field='name' verbose_name=_('Name') %}
-      </th>
-      <th>
-        {% include 'folivora/sort.html' with url='folivora_dashboard' field='rl_date' verbose_name=_('Update available since') %}
-      </th>
-      <th>
-        {% include 'folivora/sort.html' with url='folivora_dashboard' field='updates' verbose_name=_('Updates') %}
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for project in projects %}
-      <tr>
-        <td>
-          <a href="{{ project.get_absolute_url }}">{{ project.name }}</a>
-        </td>
-        <td class="span3">
-          {{ project.rl_date }}
-        </td>
-        <td class="span2">
-          {{ project.updates }}
-        </td>
-      </tr>
+<div class="row-fluid">
+  <div class="span9">
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr>
+          <th>
+            {% include 'folivora/sort.html' with url='folivora_dashboard' field='name' verbose_name=_('Name') %}
+          </th>
+          <th>
+            {% include 'folivora/sort.html' with url='folivora_dashboard' field='rl_date' verbose_name=_('Update available since') %}
+          </th>
+          <th>
+            {% include 'folivora/sort.html' with url='folivora_dashboard' field='updates' verbose_name=_('Updates') %}
+          </th>
+          <th>
+            {% trans 'Actions' %}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for project in projects %}
+          <tr>
+            <td>
+              <a href="{{ project.get_absolute_url }}">{{ project.name }}</a>
+            </td>
+            <td width=200>
+              {{ project.rl_date }}
+            </td>
+            <td width=100>
+              {{ project.updates }}
+            </td>
+            <td width=75>
+              {% if user in project.owners %}
+              <a href="{% url 'folivora_project_update' project.slug %}" title="{% trans 'edit' %}"><i class="icon-edit"></i></a>
+              <a href="{% url 'folivora_project_delete' project.slug %}" title="{% trans 'delete' %}"><i class="icon-trash"></i></a>
+              {% endif %}
+              <a href="{% url 'folivora_project_resign' project.slug %}" title="{% trans 'resign' %}"><i class="icon-leaf"></i></a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <h2>{% trans 'Recent Changes:' %}</h2>
+    {% for log in log_entries %}
+      <div class="log well"><img class="pull-right" height=40" src="{{ log.user.email|gravatar_url:40 }}"/>{% include log.template %}</div>
     {% endfor %}
-  </tbody>
-</table>
-
+  </div>
+  <div class="well span3">
+    <h2><i class="icon-bolt"></i> {% trans 'Updates' %}</h2>
+    {% regroup updates by package__name as update_list %}
+    {% for update in update_list %}
+    <h4>{{ update.grouper }} {% with upd=update.list|first %}{{ upd.update__version }}{% endwith %}</h4>
+    <ul>
+      {% for project in update.list %}
+      <li>{{ project.project__name }}</li>
+      {% endfor %}
+    </ul>
+    {% endfor %}
+  </div>
+</div>
 {% endblock content %}

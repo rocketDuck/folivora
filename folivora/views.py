@@ -55,6 +55,22 @@ class DashboardView(ListProjectView):
            .annotate(rl_date=models.Min('dependencies__update__release_date'))
         return qs
 
+    def get_context_data(self, **kwargs):
+        c = super(DashboardView, self).get_context_data(**kwargs)
+        # Get the last 5 log entries for all project of the user.
+        l = Log.objects
+        l = l.filter(project__members=self.request.user).order_by('-when')[:5]
+        # Find all updates and group them by package__name (in the template)
+        u = ProjectDependency.objects
+        u = u.filter(project__members=self.request.user, update__isnull=False) \
+             .values('project__name',
+                     'package__name',
+                     'update__version').order_by('package__name')
+        c.update({
+            'log_entries': l,
+            'updates': u,
+        })
+        return c
 
 folivora_dashboard = DashboardView.as_view()
 
