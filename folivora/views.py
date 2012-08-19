@@ -197,9 +197,7 @@ class UpdateProjectDependencyView(MemberRequiredMixin, FormView):
 
 
     def form_valid(self, form):
-        packages, missing_packages = parse_requirements(
-            form.cleaned_data['packages'].splitlines())
-        # TODO check for missing_packages in form validation
+        packages = form.cleaned_data['packages']
         ProjectDependency.objects.filter(project=self.project).delete()
         for package_name, version in packages.iteritems():
             try:
