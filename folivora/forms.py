@@ -1,7 +1,7 @@
 import pytz
 
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy, gettext as _
+from django.utils.translation import ugettext_lazy, ugettext as _
 
 from .models import (Project, UserProfile, Package, ProjectDependency,
     ProjectMember)
