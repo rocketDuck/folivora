@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-08-19 16:22+0000\n"
-"PO-Revision-Date: 2012-08-19 18:30+0100\n"
+"POT-Creation-Date: 2012-08-19 16:34+0000\n"
+"PO-Revision-Date: 2012-08-19 18:34+0100\n"
 "Last-Translator: Florian Apolloner <apollo13@apolloner.eu>\n"
 "Language-Team: Deutsch <mail@oshahn.de>\n"
 "Language: \n"
@@ -359,8 +359,8 @@ msgid "Upgrades available for:"
 msgstr "Aktualisierungen verfügbar für:"
 
 #: templates/folivora/project_detail.html:22
-msgid "Other packages"
-msgstr "Andere Pakete"
+msgid "Current packages:"
+msgstr "Aktuelle Pakete:"
 
 #: templates/folivora/project_member_add.html:3
 #: templates/folivora/project_member_add.html:9
