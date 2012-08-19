@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-08-19 23:21+0000\n"
+"POT-Creation-Date: 2012-08-19 23:52+0000\n"
 "PO-Revision-Date: 2012-08-19 18:34+0100\n"
 "Last-Translator: Florian Apolloner <apollo13@apolloner.eu>\n"
 "Language-Team: Deutsch <mail@oshahn.de>\n"
@@ -19,16 +19,16 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Gtranslator 2.91.5\n"
 
-#: forms.py:70 models.py:241
+#: forms.py:72 models.py:244
 msgid "Timezone"
 msgstr "Zeitzone"
 
-#: forms.py:112
+#: forms.py:115
 #, python-format
 msgid "Could not find the following dependencies: %s"
 msgstr "Konnte die folgenden Abhängigkeiten nicht finden: %s"
 
-#: forms.py:116
+#: forms.py:119
 #, python-format
 msgid "Could not parse the following dependencies: %s"
 msgstr "Konnte die folgenden Abhängigkeiten nicht analysieren: %s"
@@ -45,7 +45,7 @@ msgstr "Url"
 msgid "provider"
 msgstr "Anbieter"
 
-#: models.py:65 models.py:77 models.py:174 models.py:206
+#: models.py:65 models.py:77 models.py:174 models.py:208
 msgid "package"
 msgstr "Paket"
 
@@ -77,11 +77,11 @@ msgstr "Besitzer"
 msgid "Member"
 msgstr "Mitglied"
 
-#: models.py:98 models.py:117 models.py:172 models.py:205
+#: models.py:98 models.py:117 models.py:172 models.py:207
 msgid "project"
 msgstr "Project"
 
-#: models.py:99 models.py:208
+#: models.py:99 models.py:210
 msgid "user"
 msgstr "User"
 
@@ -129,39 +129,39 @@ msgstr "Projekt Abhängigkeit"
 msgid "project dependencies"
 msgstr "Projekt Abhängigkeiten"
 
-#: models.py:209
+#: models.py:211
 msgid "when"
 msgstr "wann"
 
-#: models.py:210
+#: models.py:212
 msgid "action"
 msgstr "Aktion"
 
-#: models.py:211
+#: models.py:213
 msgid "type"
 msgstr "Type"
 
-#: models.py:217
+#: models.py:219
 msgid "log"
 msgstr "Logbuch"
 
-#: models.py:218
+#: models.py:220
 msgid "logs"
 msgstr "Logbücher"
 
-#: models.py:230
+#: models.py:233
 msgid "Changelog"
 msgstr "Änderungshistorie"
 
-#: models.py:234
+#: models.py:237
 msgid "Last Sync"
 msgstr "Letzte Synconisation"
 
-#: models.py:239
+#: models.py:242
 msgid "Language"
 msgstr "Sprache"
 
-#: models.py:242
+#: models.py:245
 msgid "JID"
 msgstr "JID"
 
@@ -575,7 +575,6 @@ msgstr ""
 msgid ""
 "Hello,\n"
 "\n"
-"A email with a reset link was sucessfully send to your account. Please also "
 "Someone asked for password reset for email %(email)s. Follow the link "
 "below:\n"
 "%(protocol)s://%(domain)s%(reset_url)s\n"
@@ -627,3 +626,8 @@ msgid "The entered Jabber address is invalid. Please check your input."
 msgstr ""
 "Die eingegebene Jabber Adresse ist ungültig. Bitte kontrolliere deine "
 "Eingabe."
+
+#: utils/notifications.py:31
+msgid "{prefix}New update available for project \"{project}\""
+msgstr ""
+"{prefix}Neue aktualisierungen sind für das Projekt „{project}“ verfügbar"

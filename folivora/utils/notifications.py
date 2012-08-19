@@ -8,6 +8,7 @@
 from django.conf import settings
 from django.template import loader
 from django.core.mail import send_mail
+from django.utils.translation import ugettext as _
 
 
 def route_notifications(*log_entries):
@@ -27,7 +28,7 @@ def send_update_avilable_notification(log):
     """
     msg = loader.render_to_string('notifications/update_available.mail.txt',
                                   {'log': log})
-    subject = '{prefix}New update available for project "{project}"'.format(**{
+    subject = _('{prefix}New update available for project "{project}"').format(**{
         'prefix': settings.EMAIL_SUBJECT_PREFIX,
         'project': log.project.name})
 
