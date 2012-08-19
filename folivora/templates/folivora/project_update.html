@@ -3,13 +3,10 @@
 {% load i18n %}
 {% block headline %}{% trans 'Edit Project' %}{% endblock %}
 {% block content %}
-<a class="btn btn-info pull-right" href="{% url folivora_project_member_add project.slug %}">
-  {% trans 'Add member' %}
-</a>
-<a class="btn btn-info pull-right" href="{% url folivora_project_dependency_update project.slug %}">
-  {% trans 'Update dependencies' %}
-</a>
 <form class="form-horizontal" action="" method="post">
+  <a class="btn btn-info pull-right" href="{% url folivora_project_member_add project.slug %}">
+    {% trans 'Add member' %}
+  </a>
   <h2>{% trans 'Edit members:' %}</h2>
   {% csrf_token %}
   {{ member_form.management_form }}
@@ -32,6 +29,9 @@
     </tbody>
   </table>
 
+  <a class="btn btn-info pull-right" href="{% url folivora_project_dependency_update project.slug %}">
+    {% trans 'Update dependencies' %}
+  </a>
   <h2>{% trans 'Edit packages:' %}</h2>
   {{ dep_form.management_form }}
   <table class="table table-striped table-bordered">
@@ -54,7 +54,7 @@
   </table>
   <div class="form-actions">
     <button class="btn btn-primary" type="submit">{% trans 'Update project' %}</button>
-    <button class="btn" type="reset">{% trans 'Cancel' %}</button>
+    <button class="btn" type="reset">{% trans 'Reset' %}</button>
   </div>
 </form>
 {% endblock content %}
