@@ -318,16 +318,40 @@ class TestProjectModel(TestCase):
 
 class TestProjectViews(TestCase):
     def setUp(self):
-        admin = User.objects.create_user('admin', 'admin@example.com', 'pwd')
+        self.admin = User.objects.create_user('admin', 'admin@example.com', 'pwd')
         self.user = User.objects.create_user('apollo13', 'mail@example.com', 'pwd')
         self.project = Project.objects.create(name='test', slug='test')
-        ProjectMember.objects.create(user=admin, project=self.project,
+        ProjectMember.objects.create(user=self.admin, project=self.project,
                                      state=ProjectMember.OWNER)
         self.c = Client()
         self.c.login(username='admin', password='pwd')
         Package.create_with_provider_url('Django')
         Package.create_with_provider_url('test')
         self.new_package = Package.create_with_provider_url('new')
+
+    def test_view_project(self):
+        response = self.c.get('/project/test/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_delete_project(self):
+        project = Project.objects.create(name='trash', slug='trash')
+        response = self.c.get('/project/trash/delete/')
+        self.assertEqual(response.status_code, 403)
+
+        project_member = ProjectMember.objects.create(
+            user=self.admin, project=project, state=ProjectMember.MEMBER)
+        response = self.c.get('/project/trash/delete/')
+        self.assertEqual(response.status_code, 403)
+
+        project_member.state = ProjectMember.OWNER
+        project_member.save()
+        response = self.c.get('/project/trash/delete/')
+        self.assertEqual(response.status_code, 200)
+
+        self.assertTrue(Project.objects.filter(slug='trash').exists())
+        response = self.c.post('/project/trash/delete/')
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Project.objects.filter(slug='trash').exists())
 
     def test_app_project_member(self):
         response = self.c.post('/project/test/add_member/',
