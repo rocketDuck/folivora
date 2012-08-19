@@ -101,7 +101,7 @@ class CreateProjectMemberForm(ModelForm):
 
 
 class CreateProjectDependencyForm(forms.Form):
-    packages = forms.CharField(widget=forms.Textarea)
+    packages = forms.CharField(widget=forms.Textarea, required=False)
 
     def clean_packages(self):
         data = self.cleaned_data['packages']

@@ -11,6 +11,8 @@ def parse_requirements(lines):
         except ValueError as e:
             missing.append(line)
             continue
+        except StopIteration:
+            continue
 
         specs = [s for s in req.specs if s[0] == '==']
         if specs:
