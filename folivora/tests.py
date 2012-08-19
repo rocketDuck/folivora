@@ -5,9 +5,8 @@ from datetime import datetime
 
 from django.core.files.base import ContentFile
 from django.test import TestCase
-from django.utils.timezone import make_aware, now
-from django.test.client import Client
 from django.utils.timezone import make_aware
+from django.test.client import Client
 
 from django.contrib.auth.models import User
 
@@ -55,7 +54,7 @@ class TestPackageModel(TestCase):
     def setUp(self):
         pkg = Package.create_with_provider_url('pmxbot')
         project = Project.objects.create(name='test', slug='test')
-        dependency = ProjectDependency.objects.create(
+        ProjectDependency.objects.create(
             project=project,
             package=pkg,
             version='1101.8.0')
@@ -87,15 +86,15 @@ class TestPackageVersionModel(TestCase):
                                url='http://pypi.python.org/pypi/gunicorn',
                                provider='pypi')
         pkg = Package.objects.get(name='gunicorn')
+        dt = make_aware(datetime(2012, 7, 26, 23, 51, 18), pytz.UTC)
         PackageVersion.objects.create(package=pkg,
                                       version='0.14.6',
-                                      release_date=make_aware(datetime(2012, 7, 26, 23, 51, 18), pytz.UTC))
+                                      release_date=dt)
         vers = PackageVersion.objects.get(package__name='gunicorn',
                                           version='0.14.6')
         self.assertEqual(vers.package, pkg)
         self.assertEqual(vers.version, '0.14.6')
-        self.assertEqual(vers.release_date,
-                         make_aware(datetime(2012, 7, 26, 23, 51, 18), pytz.UTC))
+        self.assertEqual(vers.release_date, dt)
 
 
 class TestChangelogSync(TestCase):
@@ -104,11 +103,11 @@ class TestChangelogSync(TestCase):
         pkg = Package.create_with_provider_url('pmxbot')
         pkg2 = Package.create_with_provider_url('gunicorn')
         self.project = Project.objects.create(name='test', slug='test')
-        dependency = ProjectDependency.objects.create(
+        ProjectDependency.objects.create(
             project=self.project,
             package=pkg,
             version='1101.8.0')
-        dependency2 = ProjectDependency.objects.create(
+        ProjectDependency.objects.create(
             project=self.project,
             package=pkg2,
             version='0.14.6')
@@ -126,7 +125,9 @@ class TestChangelogSync(TestCase):
     def test_new_release_sync_dependency_update(self):
         result = tasks.sync_with_changelog.apply(throw=True)
         self.assertTrue(result.successful())
-        dep = ProjectDependency.objects.get(package__name='pmxbot', version='1101.8.0', project__name='test')
+        dep = ProjectDependency.objects.get(package__name='pmxbot',
+                                            version='1101.8.0',
+                                            project__name='test')
         self.assertEqual(dep.update.version, '1101.8.1')
         self.assertTrue(dep.update_available)
 
@@ -134,9 +135,8 @@ class TestChangelogSync(TestCase):
     def test_new_release_sync_log_creation(self):
         result = tasks.sync_with_changelog.apply(throw=True)
         self.assertTrue(result.successful())
-        self.assertEqual(Log.objects.filter(project=self.project, action='new_release') \
-                                    .count(),
-                         1)
+        qs = Log.objects.filter(project=self.project, action='new_release')
+        self.assertEqual(qs.count(), 1)
 
     @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
     def test_package_removal_sync(self):
@@ -153,9 +153,8 @@ class TestChangelogSync(TestCase):
     def test_package_removal_sync_log_creation(self):
         result = tasks.sync_with_changelog.apply(throw=True)
         self.assertTrue(result.successful())
-        self.assertEqual(Log.objects.filter(project=self.project, action='remove_package') \
-                                    .count(),
-                         1)
+        qs = Log.objects.filter(project=self.project, action='remove_package')
+        self.assertEqual(qs.count(), 1)
 
 
 class TestSyncProjectTask(TestCase):
@@ -165,15 +164,15 @@ class TestSyncProjectTask(TestCase):
         pkg2 = Package.create_with_provider_url('gunicorn')
         pkg3 = Package.create_with_provider_url('pytz')
         self.project = Project.objects.create(name='test', slug='test')
-        dependency = ProjectDependency.objects.create(
+        ProjectDependency.objects.create(
             project=self.project,
             package=pkg,
             version='1101.8.0')
-        dependency2 = ProjectDependency.objects.create(
+        ProjectDependency.objects.create(
             project=self.project,
             package=pkg2,
             version='0.14.6')
-        dependency3 = ProjectDependency.objects.create(
+        ProjectDependency.objects.create(
             project=self.project,
             package=pkg3,
             version='2012a')
@@ -194,7 +193,8 @@ class TestSyncProjectTask(TestCase):
 
 
 VALID_REQUIREMENTS = 'Django==1.4.1\nSphinx==1.10'
-BROKEN_REQUIREMENTS = 'Django==1.4.1\n_--.>=asdhasjk ,,, [borked]\nSphinx==1.10'
+BROKEN_REQUIREMENTS = ('Django==1.4.1\n_--.>=asdhasjk ,,, [borked]\n'
+                       'Sphinx==1.10')
 
 
 class TestProjectForms(TestCase):
@@ -208,16 +208,20 @@ class TestProjectForms(TestCase):
         ])
 
     def test_create_project_without_req(self):
-        response = self.c.post('/projects/add/', {'slug':'test', 'name':'test'})
+        response = self.c.post('/projects/add/',
+                               {'slug': 'test', 'name': 'test'})
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], 'http://testserver/project/test/')
+        self.assertEqual(response['Location'],
+                         'http://testserver/project/test/')
 
     def test_create_project(self):
         """Test that basic project creation works"""
-        response = self.c.post('/projects/add/', {'slug':'test', 'name':'test',
-            'requirements':ContentFile(VALID_REQUIREMENTS, name='req.txt')})
+        response = self.c.post('/projects/add/', {
+            'slug': 'test', 'name': 'test',
+            'requirements': ContentFile(VALID_REQUIREMENTS, name='req.txt')})
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], 'http://testserver/project/test/')
+        self.assertEqual(response['Location'],
+                         'http://testserver/project/test/')
         p = Project.objects.get(slug='test')
         # The requirements file contained two requirements
         self.assertEqual(p.dependencies.count(), 2)
@@ -227,22 +231,26 @@ class TestProjectForms(TestCase):
 
     def test_create_project_with_borked_req(self):
         """Ensure that unsupported requirement lines are skipped"""
-        response = self.c.post('/projects/add/', {'slug':'test', 'name':'test',
-            'requirements':ContentFile(BROKEN_REQUIREMENTS, name='req.txt')})
+        response = self.c.post('/projects/add/', {
+            'slug': 'test', 'name': 'test',
+            'requirements': ContentFile(BROKEN_REQUIREMENTS, name='req.txt')})
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], 'http://testserver/project/test/')
+        self.assertEqual(response['Location'],
+                         'http://testserver/project/test/')
         p = Project.objects.get(slug='test')
         # although the requirements are somewhat borked we import what we can
         self.assertEqual(p.dependencies.count(), 2)
 
     def test_update_project(self):
         """Test project changes work"""
-        response = self.c.post('/projects/add/', {'slug':'test', 'name':'test',
-            'requirements':ContentFile('Django==1.4.1', name='req.txt')})
+        response = self.c.post('/projects/add/', {
+            'slug': 'test', 'name': 'test',
+            'requirements': ContentFile('Django==1.4.1', name='req.txt')})
         p = Project.objects.get(slug='test')
         dep = ProjectDependency.objects.get(project=p)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], 'http://testserver/project/test/')
+        self.assertEqual(response['Location'],
+                         'http://testserver/project/test/')
         data = {
             'projectmember_set-TOTAL_FORMS': u'1',
             'projectmember_set-INITIAL_FORMS': u'1',
@@ -257,7 +265,8 @@ class TestProjectForms(TestCase):
         }
         response = self.c.post('/project/test/edit/', data)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], 'http://testserver/project/test/edit/')
+        self.assertEqual(response['Location'],
+                         'http://testserver/project/test/edit/')
 
         # Assert that logentries are created
         log = Log.objects.get(type='project_dependency', action='update')
@@ -267,7 +276,8 @@ class TestProjectForms(TestCase):
         data['dependencies-0-DELETE'] = '1'
         response = self.c.post('/project/test/edit/', data)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], 'http://testserver/project/test/edit/')
+        self.assertEqual(response['Location'],
+                         'http://testserver/project/test/edit/')
 
         # Assert that logentries are created
         log = Log.objects.get(type='project_dependency', action='remove')
@@ -281,7 +291,8 @@ class TestProjectForms(TestCase):
 class TestProjectModel(TestCase):
     def setUp(self):
         self.project = Project.objects.create(name='test', slug='test')
-        self.user = User.objects.create_user('test', 'test@example.com', 'test')
+        self.user = User.objects.create_user('test', 'test@example.com',
+                                             'test')
 
     def test_create_logentry_basic(self):
         self.project.create_logentry('project', 'some_testing', self.user)
@@ -318,8 +329,10 @@ class TestProjectModel(TestCase):
 
 class TestProjectViews(TestCase):
     def setUp(self):
-        self.admin = User.objects.create_user('admin', 'admin@example.com', 'pwd')
-        self.user = User.objects.create_user('apollo13', 'mail@example.com', 'pwd')
+        self.admin = User.objects.create_user('admin', 'admin@example.com',
+                                              'pwd')
+        self.user = User.objects.create_user('apollo13', 'mail@example.com',
+                                             'pwd')
         self.project = Project.objects.create(name='test', slug='test')
         ProjectMember.objects.create(user=self.admin, project=self.project,
                                      state=ProjectMember.OWNER)
@@ -366,7 +379,8 @@ class TestProjectViews(TestCase):
                                {'user': self.user.id,
                                 'state': ProjectMember.MEMBER})
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], 'http://testserver/project/test/edit/')
+        self.assertEqual(response['Location'],
+                         'http://testserver/project/test/edit/')
 
     def test_resign_project(self):
         self.c.login(username='apollo13', password='pwd')
@@ -389,7 +403,8 @@ class TestProjectViews(TestCase):
                                {'packages': 'Django==1\ntest==2'})
         self.assertEqual(response.status_code, 302)
         response = self.c.get('/project/test/deps/')
-        self.assertEqual(response.context['form'].initial['packages'], 'Django==1\ntest==2')
+        self.assertEqual(response.context['form'].initial['packages'],
+                         'Django==1\ntest==2')
         response = self.c.post('/project/test/deps/',
                                {'packages': 'Django==2\ntest==2\nnew==3'})
         self.assertTrue(ProjectDependency.objects.filter(
@@ -404,7 +419,7 @@ class TestProjectViews(TestCase):
 
 class TestUserProfileView(TestCase):
     def setUp(self):
-        user = User.objects.create_user('apollo13', 'mail@example.com', 'pwd')
+        User.objects.create_user('apollo13', 'mail@example.com', 'pwd')
         self.c = Client()
         self.c.login(username='apollo13', password='pwd')
 
@@ -447,10 +462,12 @@ class TestUtils(TestCase):
         self.assertFalse(is_valid_jid('example.com'))
 
     def test_parse_requirements(self):
-        packages, missing = parse_requirements(ContentFile(VALID_REQUIREMENTS).readlines())
+        packages, missing = parse_requirements(
+            ContentFile(VALID_REQUIREMENTS).readlines())
         self.assertEqual(packages, {'Sphinx': '1.10', 'Django': '1.4.1'})
         self.assertFalse(missing)
-        packages, missing = parse_requirements(ContentFile(BROKEN_REQUIREMENTS))
+        packages, missing = parse_requirements(
+            ContentFile(BROKEN_REQUIREMENTS))
         self.assertEqual(packages, {'Sphinx': '1.10', 'Django': '1.4.1'})
         self.assertEqual(missing, ['_--.>=asdhasjk ,,, [borked]\n'])
         packages, missing = parse_requirements(ContentFile('Django'))

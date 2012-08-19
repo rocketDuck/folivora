@@ -66,8 +66,8 @@ def sync_with_changelog():
             except Package.DoesNotExist:
                 pkg = Package.create_with_provider_url(package)
 
-            release_date = timezone.make_aware(datetime.datetime.fromtimestamp(stamp),
-                                               pytz.UTC)
+            dt = datetime.datetime.fromtimestamp(stamp)
+            release_date = timezone.make_aware(dt, pytz.UTC)
             if not PackageVersion.objects.filter(version=version).exists():
                 update = PackageVersion(version=version,
                                         release_date=release_date)
@@ -118,7 +118,7 @@ def sync_project(project_pk):
             if LooseVersion(dependency.version) >= LooseVersion(versions[-1]):
                 ProjectDependency.objects.filter(pk=dependency.pk) \
                                          .update(update=None)
-                continue # The dependency is up2date, nothing to do
+                continue  # The dependency is up2date, nothing to do
 
             pv = PackageVersion.objects.get(package=package,
                                             version=versions[-1])

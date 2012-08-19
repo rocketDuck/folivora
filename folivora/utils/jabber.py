@@ -1,5 +1,4 @@
 import re
-from django.conf import settings
 
 
 # NOTE: according to rfc4622 a nodeid is optional. But we require one

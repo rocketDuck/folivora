@@ -6,15 +6,17 @@ from django import template
 from django.template.defaultfilters import stringfilter
 from django.utils.timezone import make_aware, utc
 
+
 register = template.Library()
+
 
 @register.filter
 def gravatar_url(email, size):
     size = str(size)
     gravatar_url = 'http://www.gravatar.com/avatar.php?'
     gravatar_url += urllib.urlencode({
-        'gravatar_id':hashlib.md5(email.lower()).hexdigest(),
-        'size':str(size)
+        'gravatar_id': hashlib.md5(email.lower()).hexdigest(),
+        'size': str(size)
     })
     return gravatar_url
 

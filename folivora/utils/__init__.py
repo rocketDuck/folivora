@@ -8,7 +8,7 @@ def parse_requirements(lines):
     for line in lines:
         try:
             req = pkg_resources.parse_requirements(line.strip()).next()
-        except ValueError as e:
+        except ValueError:
             missing.append(line)
             continue
         except StopIteration:
