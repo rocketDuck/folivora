@@ -359,11 +359,12 @@ class TestProjectViews(TestCase):
         response = self.c.get('/project/test/deps/')
         self.assertEqual(response.context['form'].initial['packages'], 'Django==1\ntest==2')
         response = self.c.post('/project/test/deps/',
-                               {'packages': 'Django==2\nnew==3'})
+                               {'packages': 'Django==2\ntest==2\nnew==3'})
         self.assertTrue(ProjectDependency.objects.filter(
             project=self.project, package=self.new_package).exists())
         response = self.c.post('/project/test/deps/',
                                {'packages': 'Django==2\nunknown==3'})
+        self.assertEqual(response.status_code, 200)
 
 
 class TestUserProfileView(TestCase):

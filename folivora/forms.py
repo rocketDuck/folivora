@@ -107,8 +107,15 @@ class UpdateProjectDependencyForm(forms.Form):
         data = self.cleaned_data['packages']
         packages, missing_packages = parse_requirements(
             data.splitlines())
+        known_packages = set(Package.objects.filter(name__in=packages)
+                                   .values_list('name', flat=True))
+        unknown_packages = set(packages).difference(known_packages)
+        if unknown_packages:
+            raise ValidationError(_(
+                'Could not find the following dependencies: %s') %
+                ', '.join(unknown_packages))
         if missing_packages:
             raise ValidationError(_(
-                'could not parse the following dependencies: %s') %
+                'Could not parse the following dependencies: %s') %
                 ', '.join(missing_packages))
         return packages

@@ -226,8 +226,6 @@ class UpdateProjectDependencyView(ProjectMixin, FormView):
 
         change = []
         for package in new.intersection(old):
-            if not package in ids:
-                continue
             if old_requirements[package] == new_requirements[package]:
                 continue
             change.append((ids[package], old_requirements[package],
