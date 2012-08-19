@@ -19,9 +19,9 @@ def sync():
         raw_input('sure (this resets everything)? [y/n]: ') == 'y'):
             Package.objects.all().delete()
 
-    state, created = SyncState.objects.get_or_create(
-        type=SyncState.CHANGELOG,
-        defaults={'last_sync': timezone.now()})
+    SyncState.objects.all().delete()
+    SyncState.objects.create(type=SyncState.CHANGELOG,
+        last_sync=timezone.now())
 
     print 'Query package list'
     package_names = SERVER.get_package_list()
