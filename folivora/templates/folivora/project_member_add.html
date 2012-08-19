@@ -1,6 +1,5 @@
 {% extends 'page.html' %}
-{% load floppyforms %}
-{% load i18n %}
+{% load floppyforms i18n %}
 {% block headline %}{% trans 'Add member' %}{% endblock %}
 {% block content %}
 <form class="form-horizontal" action="" method="post">
@@ -8,7 +7,7 @@
     {% form form using 'floppyforms/layouts/bootstrap.html' %}
     <div class="form-actions">
       <button class="btn btn-primary" type="submit">{% trans 'Append member' %}</button>
-      <button class="btn">{% trans 'Cancel' %}</button>
+      <button class="btn" type="reset">{% trans 'Reset' %}</button>
     </div>
 </form>
 {% endblock content %}

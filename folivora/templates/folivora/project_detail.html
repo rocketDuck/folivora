@@ -1,7 +1,7 @@
 {% extends 'fluid.html' %}
 {% load url from future %}
-{% load i18n %}
-{% block headline %}{{ project.name }}
+{% load i18n folivora %}
+{% block headline %}<i class="icon-beaker"></i> {{ project.name }}
   {% if updates %}{% blocktrans %} ({{ updates }} updates available){% endblocktrans %}{% endif %}
   <a href="{% url 'folivora_project_update' project.slug %}" class="btn btn-primary pull-right">{% trans 'Edit project' %}</a>
 {% endblock headline %}
@@ -9,7 +9,7 @@
 <div class="row-fluid">
   <div class="span9">
   {% for log in log_entries %}
-    <div class="well">{% include log.template %}</div>
+    <div class="log well"><img class="pull-right" height=40" src="{{ log.user.email|gravatar_url:40 }}"/>{% include log.template %}</div>
   {% endfor %}
   </div>
   <div class="span3">
@@ -17,7 +17,7 @@
   {% for dep in dep_list %}
     <div class="well">
       {% if dep.grouper %}
-        <h4>{% trans 'Upgrades available for:' %}</h4>
+        <h4><i class="icon-bolt"></i> {% trans 'Upgrades available for:' %}</h4>
       {% else %}
         <h4>{% trans 'Other packages' %}</h4>
       {% endif %}

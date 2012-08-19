@@ -29,7 +29,7 @@ from .utils.views import SortListMixin, MemberRequiredMixin
 
 
 folivora_index = TemplateView.as_view(template_name='folivora/index.html')
-
+folivora_dashboard = TemplateView.as_view(template_name='folivora/dashboard.html')
 
 class ListProjectView(LoginRequiredMixin, SortListMixin, ListView):
     model = Project
