@@ -102,3 +102,13 @@ class CreateProjectMemberForm(ModelForm):
 
 class CreateProjectDependencyForm(forms.Form):
     packages = forms.CharField(widget=forms.Textarea)
+
+    def clean_packages(self):
+        data = self.cleaned_data['packages']
+        packages, missing_packages = parse_requirements(
+            data.splitlines())
+        if missing_packages:
+            raise ValidationError(_(
+                'could not parse the following dependencies: %s') %
+                ', '.join(missing_packages))
+        return packages
