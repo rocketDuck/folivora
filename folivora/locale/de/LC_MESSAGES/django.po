@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-08-19 23:12+0000\n"
+"POT-Creation-Date: 2012-08-19 23:21+0000\n"
 "PO-Revision-Date: 2012-08-19 18:34+0100\n"
 "Last-Translator: Florian Apolloner <apollo13@apolloner.eu>\n"
 "Language-Team: Deutsch <mail@oshahn.de>\n"
@@ -286,8 +286,8 @@ msgid ""
 "demo)."
 msgstr ""
 "Du definierst deine Projekte und Abhängigkeiten und wir überprüfen ob es "
-"Updates dafür gibt. Sollten wir Updates finden wirst du sofort "
-"benachrichtigt. Ein eigenese Projekt ist nur einen 'pip freeze' Aufruf "
+"Aktualisierungen dafür gibt. Sollten wir eine neue Version finden wirst du "
+"sofort benachrichtigt. Ein eigenes Projekt ist nur einen 'pip freeze' Aufruf "
 "entfernt. Probier es mit dem Demo User (passwort: demo, benutzername: demo)."
 
 #: templates/folivora/project_add.html:4
@@ -425,9 +425,9 @@ msgid "Yes, resign"
 msgstr "Ja, ich trete zurück"
 
 #: templates/folivora/userprofile_form.html:4
-#, fuzzy, python-format
+#, python-format
 msgid " Preferences for %(user)s"
-msgstr "Einstellungen"
+msgstr "Einstellungen für %(user)s"
 
 #: templates/folivora/userprofile_form.html:8
 msgid "password"
@@ -480,13 +480,13 @@ msgstr ""
 "%(timesince)s."
 
 #: templates/notifications/update_available.mail.txt:2
-#, fuzzy, python-format
+#, python-format
 msgid ""
-"The “%(package)s” just received an update. Version %(version)s is available "
-"on PyPi since %(timesince)s."
+"“%(package)s” just received an update. Version %(version)s is available on "
+"PyPi since %(timesince)s."
 msgstr ""
-"Version <b>%(version)s von %(package)s</b> ist verfügbar auf PyPI seit "
-"%(timesince)s."
+"„%(package)s” hat gerade eine Aktualisierung erhalten. Version %(version)s "
+"ist im PyPi seit %(timesince)s erhältlich."
 
 #: templates/registration/activate.html:5
 msgid "Account activation failed."
@@ -530,46 +530,42 @@ msgstr ""
 #: templates/registration/activation_email_subject.txt:1
 #, python-format
 msgid "Your registration at %(site_name)s"
-msgstr ""
+msgstr "Deine Registrierung auf %(site_name)s"
 
 #: templates/registration/login.html:9
-#, fuzzy
 msgid "Reset passwod"
-msgstr "Passwort"
+msgstr "Passwort zurücksetzen"
 
 #: templates/registration/password_change_done.html:5
 #: templates/registration/password_reset_complete.html:5
 #: templates/registration/password_reset_done.html:5
 msgid "Password change complete"
-msgstr ""
+msgstr "Änderung des Passworts erfolgreich"
 
 #: templates/registration/password_change_done.html:8
 #: templates/registration/password_reset_complete.html:8
 msgid "Your password was sucessfully changed!"
-msgstr ""
+msgstr "Dein Passwort wurde erfolgreich geändert!"
 
 #: templates/registration/password_change_done.html:9
 #: templates/registration/password_reset_complete.html:9
 #: templates/registration/password_reset_done.html:9
 msgid "Go back"
-msgstr ""
+msgstr "Zurück"
 
 #: templates/registration/password_change_form.html:4
 #: templates/registration/password_change_form.html:10
-#, fuzzy
 msgid "Change Password"
-msgstr "Passwort"
+msgstr "Ändere Passwort"
 
 #: templates/registration/password_reset_confirm.html:5
-#, fuzzy
 msgid "Confirm password reset"
-msgstr "Löschen bestätigen"
+msgstr "Passwort-Reset bestätigen"
 
 #: templates/registration/password_reset_done.html:8
-#, fuzzy
 msgid ""
-"A email with a reset link was sucessfully send to your account. Please also "
-"check sour spam folder!"
+"An email with a reset link was sucessfully send to your account. Please also "
+"check your spam folder!"
 msgstr ""
 "Eine Aktivierungsmail wird dich in kürze erreichen. Bitte kontrolliere "
 "ebenfalls deinen Spam-Ordner"
@@ -579,6 +575,7 @@ msgstr ""
 msgid ""
 "Hello,\n"
 "\n"
+"A email with a reset link was sucessfully send to your account. Please also "
 "Someone asked for password reset for email %(email)s. Follow the link "
 "below:\n"
 "%(protocol)s://%(domain)s%(reset_url)s\n"
@@ -587,23 +584,20 @@ msgid ""
 msgstr ""
 
 #: templates/registration/password_reset_form.html:4
-#, fuzzy
 msgid "Reset password"
-msgstr "Passwort"
+msgstr "Passwort zurücksetzen"
 
 #: templates/registration/password_reset_form.html:9
-#, fuzzy
 msgid ""
 "A new password will be send to your via email. Please also check your spam "
 "folder!"
 msgstr ""
-"Eine Aktivierungsmail wird dich in kürze erreichen. Bitte kontrolliere "
+"Ein neues Passwort wird dich in kürze erreichen. Bitte kontrolliere "
 "ebenfalls deinen Spam-Ordner"
 
 #: templates/registration/password_reset_form.html:11
-#, fuzzy
 msgid "Reset Password"
-msgstr "Passwort"
+msgstr "Passwort zurücksetzen"
 
 #: templates/registration/registration_closed.html:5
 msgid "Registration closed :("

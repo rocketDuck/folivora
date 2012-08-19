@@ -1,2 +1,2 @@
 {% load i18n folivora %}
-{% blocktrans with package=log.package version=log.data.version timesince=log.data.since|parse_iso_datetime|timesince %}The “{{ package }}” just received an update. Version {{ version }} is available on PyPi since {{ timesince }}.{% endblocktrans %}
+{% blocktrans with package=log.package version=log.data.version timesince=log.data.since|parse_iso_datetime|timesince %}“{{ package }}” just received an update. Version {{ version }} is available on PyPi since {{ timesince }}.{% endblocktrans %}
