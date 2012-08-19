@@ -8,7 +8,7 @@
     {% form form using 'floppyforms/layouts/bootstrap.html' %}
     <div class="form-actions">
       <button class="btn btn-primary" type="submit">{% trans 'Update dependencies' %}</button>
-      <button class="btn" type="reset">{% trans 'Reset' %}</button>
+      <a class="btn" href="{% url folivora_project_update project.slug %}">{% trans 'Cancel' %}</a>
     </div>
 </form>
 {% endblock content %}
