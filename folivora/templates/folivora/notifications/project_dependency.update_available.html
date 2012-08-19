@@ -1,4 +1,4 @@
 {% load i18n %}
-{% blocktrans with package=log.package version=log.data.version timesince=log.when|timesince %}
-Version {{ version }} of {{ package }} available on PyPI since {{timesince}}.
+{% blocktrans with package=log.package version=log.data.version timesince=log.data.since %}
+Version {{ version }} of {{ package }} available on PyPI since {{ timesince }}.
 {% endblocktrans %}

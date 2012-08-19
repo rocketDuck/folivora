@@ -100,24 +100,35 @@ def sync_with_changelog():
 def sync_project(project_pk):
     project = Project.objects.get(pk=project_pk)
 
+    log_entries = []
     for dependency in project.dependencies.all():
         package = dependency.package
         package.sync_versions()
         versions = list(package.versions.values_list('version', flat=True))
-        log_entries = []
+
         if versions:
             # We use LooseVersion since at least pytz fails with StrictVersion
             # TODO: tests
             versions.sort(key=LooseVersion)
 
             if LooseVersion(dependency.version) >= LooseVersion(versions[-1]):
+                ProjectDependency.objects.filter(pk=dependency.pk) \
+                                         .update(update=None)
                 continue # The dependency is up2date, nothing to do
 
-            dependency.update = PackageVersion.objects.get(package=package,
-                                                           version=versions[-1])
+            pv = PackageVersion.objects.get(package=package,
+                                            version=versions[-1])
+
+            if pv.pk == dependency.update_id:
+                continue
+
+            dependency.update = pv
             dependency.save()
             log_entries.append(Log(type='project_dependency',
                                    action='update_available',
                                    project=project, package=package,
-                                   data={'version': versions[-1]}))
+                                   data={'version': versions[-1],
+                                         'since': str(pv.release_date)}))
+
+    if log_entries:
         Log.objects.bulk_create(log_entries)

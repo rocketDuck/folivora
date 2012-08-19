@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-
-
+import copy
 import json
 
 from django.core.urlresolvers import reverse_lazy, reverse
@@ -22,6 +21,7 @@ from .forms import (AddProjectForm, UpdateUserProfileForm,
     ProjectDependencyForm, ProjectMemberForm, CreateProjectMemberForm)
 from .models import (Project, UserProfile, ProjectDependency, ProjectMember,
     Log)
+from .tasks import sync_project
 from .utils.views import SortListMixin, MemberRequiredMixin
 
 
@@ -88,15 +88,20 @@ class UpdateProjectView(MemberRequiredMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         ctx = self.get_context_data(**kwargs)
-        forms = [ctx['dep_form'], ctx['member_form']]
-        if all(map(lambda f: f.is_valid(), forms)):
-            for form in forms:
-                form.save()
-            object = Project.objects.get(slug=kwargs['slug'])
+        dep_form = ctx['dep_form']
+        member_form = ctx['member_form']
+        # Ugly, but we need access to the initial dataset!
+        original_data = copy.deepcopy(dep_form._object_dict)
+        if all([dep_form.is_valid(), member_form.is_valid()]):
+            member_form.save()
+            dep_form.save()
+            ProjectDependency.process_changed_dependencies(dep_form,
+                original_data, self.request.user)
+            sync_project(dep_form.instance.pk)
             messages.success(request, _(u'Updated Project “{name}” '
-                'successfully.').format(name=object.name))
+                'successfully.').format(name=dep_form.instance.name))
             return HttpResponseRedirect(reverse('folivora_project_update',
-                                                kwargs={'slug': object.slug}))
+                                    kwargs={'slug': dep_form.instance.slug}))
         return self.render_to_response(ctx)
 
 
