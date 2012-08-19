@@ -134,7 +134,7 @@ class DetailProjectView(ProjectMixin, DetailView):
             'updates': ProjectDependency.objects.filter(project=self.project)
                                                 .filter(update__isnull=False)
                                                 .count(),
-            'deps': project.dependencies.select_related('package')
+            'deps': self.project.dependencies.select_related('package')
                                         .order_by('package__name')
         })
         return context
