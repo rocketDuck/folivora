@@ -113,10 +113,6 @@ class UpdateProjectView(ProjectMixin, TemplateView):
         })
         return context
 
-    def get(self, request, *args, **kwargs):
-        context = self.get_context_data(**kwargs)
-        return self.render_to_response(context)
-
     def post(self, request, *args, **kwargs):
         ctx = self.get_context_data(**kwargs)
         dep_form = ctx['dep_form']
