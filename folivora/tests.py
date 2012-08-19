@@ -392,6 +392,8 @@ class TestUtils(TestCase):
         packages, missing = parse_requirements(ContentFile(BROKEN_REQUIREMENTS))
         self.assertEqual(packages, {'Sphinx': '1.10', 'Django': '1.4.1'})
         self.assertEqual(missing, ['_--.>=asdhasjk ,,, [borked]\n'])
+        packages, missing = parse_requirements(ContentFile('Django'))
+        self.assertEqual(missing, ['Django'])
 
     def test_sort_mixin(self):
         p1 = Project.objects.create(name='test', slug='test')

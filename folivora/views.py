@@ -179,9 +179,7 @@ class ResignProjectView(MemberRequiredMixin, DeleteView):
     success_url = reverse_lazy('folivora_project_list')
 
     def get_object(self, queryset=None):
-        slug = self.kwargs.get('slug', None)
-        if slug is None:
-            raise AttributeError('ResignProjectView must be called with a slug')
+        slug = self.kwargs['slug']
         self.project = Project.objects.get(slug=slug)
         user = self.request.user
         return ProjectMember.objects.get(project=self.project, user=user)
