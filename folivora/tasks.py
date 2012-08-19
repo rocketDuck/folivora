@@ -89,14 +89,17 @@ def sync_with_changelog():
             # We only clear versions and set the recent updated version
             # on every project dependency to NULL. This way we can ensure
             # stability on ProjectDependency.
-            pkg = Package.objects.get(name=package)
-            if version is None:
-                pkg.versions.delete()
-            ProjectDependency.objects.filter(package=pkg) \
-                                     .update(update=None)
-            log_affected_projects(pkg, action='remove_package',
-                                  type='package',
-                                  data={'package': package})
+            try:
+                pkg = Package.objects.get(name=package)
+                if version is None:
+                    pkg.versions.delete()
+                ProjectDependency.objects.filter(package=pkg) \
+                                         .update(update=None)
+                log_affected_projects(pkg, action='remove_package',
+                                      type='package',
+                                      data={'package': package})
+            except Package.DoesNotExist:
+                pass
 
         elif action == 'create':
             if not Package.objects.filter(name=package).exists():
