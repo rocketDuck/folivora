@@ -25,7 +25,7 @@ from .models import (Project, UserProfile, ProjectDependency, ProjectMember,
     Log, Package)
 from .utils import parse_requirements
 from .tasks import sync_project
-from .utils.views import SortListMixin, MemberRequiredMixin
+from .utils.views import SortListMixin, ProjectMixin
 
 
 folivora_index = TemplateView.as_view(template_name='folivora/index.html')
@@ -54,7 +54,7 @@ class AddProjectView(LoginRequiredMixin, UserFormKwargsMixin, CreateView):
 project_add = AddProjectView.as_view()
 
 
-class UpdateProjectView(MemberRequiredMixin, TemplateView):
+class UpdateProjectView(ProjectMixin, TemplateView):
     model = Project
     template_name = 'folivora/project_update.html'
 
@@ -71,15 +71,13 @@ class UpdateProjectView(MemberRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(UpdateProjectView, self).get_context_data(**kwargs)
         data = self.request.POST if self.request.method == 'POST' else None
-        object = Project.objects.get(slug=self.kwargs['slug'])
         dep_form = self.dep_form_class(data, queryset=self.dep_qs,
-                                       instance=object)
-        member_form = self.member_form_class(data, instance=object,
+                                       instance=self.project)
+        member_form = self.member_form_class(data, instance=self.project,
                                              queryset=self.member_qs)
         context.update({
             'dep_form': dep_form,
             'member_form': member_form,
-            'project': object,
         })
         return context
 
@@ -109,36 +107,34 @@ class UpdateProjectView(MemberRequiredMixin, TemplateView):
 project_update = UpdateProjectView.as_view()
 
 
-class DeleteProjectView(MemberRequiredMixin, DeleteView):
+class DeleteProjectView(ProjectMixin, DeleteView):
     model = Project
     success_url = reverse_lazy('folivora_project_list')
     allow_only_owner = True
 
     def delete(self, *args, **kwargs):
-        object = self.get_object()
-        if object:
+        if self.project:
             messages.success(self.request, _(u'Deleted project “{name}” '
-                'successfully.').format(name=object.name))
+                'successfully.').format(name=self.project.name))
         return super(DeleteView, self).delete(*args, **kwargs)
 
 
 project_delete = DeleteProjectView.as_view()
 
 
-class DetailProjectView(MemberRequiredMixin, DetailView):
+class DetailProjectView(ProjectMixin, DetailView):
     model = Project
 
     def get_context_data(self, **kwargs):
         context = super(DetailProjectView, self).get_context_data(**kwargs)
-        project = context['object']
         context.update({
-            'log_entries': Log.objects.filter(project=project) \
-                                      .order_by('-when') \
+            'log_entries': Log.objects.filter(project=self.project)
+                                      .order_by('-when')
                                       .select_related('user', 'package'),
-            'updates': ProjectDependency.objects.filter(project=project) \
-                                                .filter(update__isnull=False) \
+            'updates': ProjectDependency.objects.filter(project=self.project)
+                                                .filter(update__isnull=False)
                                                 .count(),
-            'deps': project.dependencies.select_related('package') \
+            'deps': project.dependencies.select_related('package')
                                         .order_by('package__name')
         })
         return context
@@ -147,7 +143,7 @@ class DetailProjectView(MemberRequiredMixin, DetailView):
 project_detail = DetailProjectView.as_view()
 
 
-class CreateProjectMemberView(MemberRequiredMixin, CreateView):
+class CreateProjectMemberView(ProjectMixin, CreateView):
     model = ProjectMember
     form_class = CreateProjectMemberForm
     allow_only_owner = True
@@ -157,11 +153,10 @@ class CreateProjectMemberView(MemberRequiredMixin, CreateView):
         return reverse('folivora_project_update', args=[self.kwargs['slug']])
 
     def form_valid(self, form):
-        project = Project.objects.get(slug=self.kwargs['slug'])
         self.object = form.save(commit=False)
-        self.object.project = project
+        self.object.project = self.project
         user = self.object.user
-        if (ProjectMember.objects.filter(project=project)
+        if (ProjectMember.objects.filter(project=self.project)
                          .filter(user=user).exists()):
             pass
             # TODO: do not validate the form
@@ -173,7 +168,7 @@ class CreateProjectMemberView(MemberRequiredMixin, CreateView):
 project_add_member = CreateProjectMemberView.as_view()
 
 
-class UpdateProjectDependencyView(MemberRequiredMixin, FormView):
+class UpdateProjectDependencyView(ProjectMixin, FormView):
     form_class = CreateProjectDependencyForm
     allow_only_owner = True
     template_name = 'folivora/project_dependency_update.html'
@@ -181,20 +176,8 @@ class UpdateProjectDependencyView(MemberRequiredMixin, FormView):
     def get_success_url(self):
         return reverse('folivora_project_update', args=[self.kwargs['slug']])
 
-    def get_object(self, queryset=None):
-        return Project.objects.get(slug=self.kwargs['slug'])
-
     def get_initial(self):
         return {'packages': self.project.get_requirements()}
-
-    def get(self, request, *args, **kwargs):
-        self.project = self.get_object()
-        return super(UpdateProjectDependencyView, self).get(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        self.project = self.get_object()
-        return super(UpdateProjectDependencyView, self).post(request, *args, **kwargs)
-
 
     def form_valid(self, form):
         packages = form.cleaned_data['packages']
@@ -212,19 +195,12 @@ class UpdateProjectDependencyView(MemberRequiredMixin, FormView):
 project_update_dependency = UpdateProjectDependencyView.as_view()
 
 
-class ResignProjectView(MemberRequiredMixin, DeleteView):
+class ResignProjectView(ProjectMixin, DeleteView):
     success_url = reverse_lazy('folivora_project_list')
 
     def get_object(self, queryset=None):
-        slug = self.kwargs['slug']
-        self.project = Project.objects.get(slug=slug)
         user = self.request.user
         return ProjectMember.objects.get(project=self.project, user=user)
-
-    def get_context_data(self, **kwargs):
-        context = super(ResignProjectView, self).get_context_data(**kwargs)
-        context['project'] = self.project
-        return context
 
 
 project_resign = ResignProjectView.as_view()

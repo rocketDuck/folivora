@@ -53,7 +53,7 @@ class SortListMixin(object):
         return qs
 
 
-class MemberRequiredMixin(object):
+class ProjectMixin(object):
     """Mixin which checks if the user has access to the project in question.
 
     It is written for this project and won't work anywhere else ;)
@@ -64,16 +64,24 @@ class MemberRequiredMixin(object):
     Additionally it checks if the user is authenticated.
 
     Set allow_only_owner True, to grant access only to owners
+
+    Also polulates self.project and context['project']
     """
     allow_only_owner = False
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         slug = kwargs['slug']
-        project = Project.objects.get(slug=slug)
-        query = ProjectMember.objects.filter(user=request.user, project=project)
+        self.project = Project.objects.get(slug=slug)
+        query = ProjectMember.objects.filter(
+            user=request.user, project=self.project)
         if self.allow_only_owner:
             query = query.filter(state=ProjectMember.OWNER)
         if not query.exists():
             return HttpResponseForbidden('403 - Forbidden')
-        return super(MemberRequiredMixin, self).dispatch(request, *args, **kwargs)
+        return super(ProjectMixin, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(ProjectMixin, self).get_context_data(**kwargs)
+        context['project'] = self.project
+        return context
