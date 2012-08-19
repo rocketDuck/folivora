@@ -131,9 +131,43 @@ class Project(models.Model):
         Log.objects.create(project=self, type=type,
                            action=action, data=kwargs, user=user)
 
-    def get_requirements(self):
-        query = ProjectDependency.objects.filter(project=self)
+    @property
+    def requirements(self):
+        query = ProjectDependency.objects.filter(project=self) \
+                                         .select_related('package')
         return "\n".join([d.dependency_string for d in query.all()])
+
+    @property
+    def requirement_dict(self):
+        query = ProjectDependency.objects.filter(project=self) \
+                                         .select_related('package')
+        return dict((d.package.name, d.version) for d in query)
+
+    def process_changes(self, user, remove=None, change=None, add=None):
+        log_entries = []
+
+        remove = remove if remove else []
+        change = change if change else []
+        add = add if add else []
+
+        for package_id, version in add:
+            log_entries.append(Log(type='project_dependency', action='add',
+                                   project_id=self.pk, package_id=package_id,
+                                   user=user, data={'version': version}))
+        for package_id, version in remove:
+            log_entries.append(Log(type='project_dependency', action='remove',
+                                   project_id=self.pk, package_id=package_id,
+                                   user=user, data={'version': version}))
+        for package_id, old_version, new_version in change:
+            log_entries.append(Log(type='project_dependency', action='update',
+                                   project_id=self.pk, package_id=package_id,
+                                   user=user, data={'version': new_version,
+                                         'old_version': old_version}))
+
+        Log.objects.bulk_create(log_entries)
+        from .tasks import sync_project
+        # give the request time to finish before syncing
+        sync_project.apply_async(args=[self.pk], countdown=1)
 
     @property
     def owners(self):
@@ -162,23 +196,15 @@ class ProjectDependency(models.Model):
         return self.update_id is not None
 
     @classmethod
-    def process_changed_dependencies(cls, formset, original_data, user):
-        log_entries = []
+    def process_formset(cls, formset, original_data, user):
+        remove = []
+        change = []
         for instance in formset.deleted_objects:
-            log_entries.append(Log(type='project_dependency', action='remove',
-                                   project_id=instance.project.pk,
-                                   package_id=instance.package.pk,
-                                   user=user,
-                                   data={'version': instance.version}))
+            remove.append((instance.package.id, instance.version))
         for instance, d in formset.changed_objects:
             existing = original_data[instance.pk]
-            log_entries.append(Log(type='project_dependency', action='update',
-                                   project_id=instance.project.pk,
-                                   package_id=instance.package.pk,
-                                   user=user,
-                                   data={'version': instance.version,
-                                         'old_version': existing.version}))
-        Log.objects.bulk_create(log_entries)
+            change.append((instance.package.id, existing.version, instance.version))
+        formset.instance.process_changes(user, remove, change)
 
 
 class Log(models.Model):
