@@ -210,12 +210,14 @@ class TestProjectForms(TestCase):
     def test_create_project_without_req(self):
         response = self.c.post('/projects/add/', {'slug':'test', 'name':'test'})
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], 'http://testserver/project/test/')
 
     def test_create_project(self):
         """Test that basic project creation works"""
         response = self.c.post('/projects/add/', {'slug':'test', 'name':'test',
             'requirements':ContentFile(VALID_REQUIREMENTS, name='req.txt')})
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], 'http://testserver/project/test/')
         p = Project.objects.get(slug='test')
         # The requirements file contained two requirements
         self.assertEqual(p.dependencies.count(), 2)
@@ -228,6 +230,7 @@ class TestProjectForms(TestCase):
         response = self.c.post('/projects/add/', {'slug':'test', 'name':'test',
             'requirements':ContentFile(BROKEN_REQUIREMENTS, name='req.txt')})
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], 'http://testserver/project/test/')
         p = Project.objects.get(slug='test')
         # although the requirements are somewhat borked we import what we can
         self.assertEqual(p.dependencies.count(), 2)
@@ -239,6 +242,7 @@ class TestProjectForms(TestCase):
         p = Project.objects.get(slug='test')
         dep = ProjectDependency.objects.get(project=p)
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], 'http://testserver/project/test/')
         data = {
             'projectmember_set-TOTAL_FORMS': u'1',
             'projectmember_set-INITIAL_FORMS': u'1',
@@ -253,6 +257,7 @@ class TestProjectForms(TestCase):
         }
         response = self.c.post('/project/test/edit/', data)
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], 'http://testserver/project/test/edit/')
 
         # Assert that logentries are created
         log = Log.objects.get(type='project_dependency', action='update')
@@ -262,6 +267,7 @@ class TestProjectForms(TestCase):
         data['dependencies-0-DELETE'] = '1'
         response = self.c.post('/project/test/edit/', data)
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], 'http://testserver/project/test/edit/')
 
         # Assert that logentries are created
         log = Log.objects.get(type='project_dependency', action='remove')
@@ -325,6 +331,7 @@ class TestProjectViews(TestCase):
                                {'user': self.user.id,
                                 'state': ProjectMember.MEMBER})
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], 'http://testserver/project/test/edit/')
 
     def test_resign_project(self):
         self.c.login(username='apollo13', password='pwd')
@@ -334,6 +341,7 @@ class TestProjectViews(TestCase):
         self.assertEqual(response.status_code, 200)
         response = self.c.post('/project/test/resign/')
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], 'http://testserver/projects/')
         self.assertFalse(ProjectMember.objects.filter(project=self.project,
                                                       user=self.user).exists())
         response = self.c.post('/project/test/resign/')
