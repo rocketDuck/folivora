@@ -16,6 +16,8 @@ from .models import (Package, PackageVersion, Project, Log,
 from . import tasks
 from .utils import parse_requirements
 from .utils.jabber import is_valid_jid
+from .utils.forms import JabberField
+from .utils.views import SortListMixin
 
 
 class CheesyMock(object):
@@ -75,6 +77,7 @@ class TestPackageModel(TestCase):
         self.assertEqual(pkg.versions.count(), 1)
         version = pkg.versions.all()[0]
         self.assertEqual(version.version, '1101.8.1')
+        self.assertNumQueries(0, pkg.sync_versions)
 
 
 class TestPackageVersionModel(TestCase):
@@ -125,6 +128,7 @@ class TestChangelogSync(TestCase):
         self.assertTrue(result.successful())
         dep = ProjectDependency.objects.get(package__name='pmxbot', version='1101.8.0', project__name='test')
         self.assertEqual(dep.update.version, '1101.8.1')
+        self.assertTrue(dep.update_available)
 
     @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
     def test_new_release_sync_log_creation(self):
@@ -143,6 +147,7 @@ class TestChangelogSync(TestCase):
         # dependency stays the way it was, except that `.update` was cleared.
         dep = ProjectDependency.objects.get(package__name='gunicorn')
         self.assertEqual(dep.update, None)
+        self.assertFalse(dep.update_available)
 
     @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
     def test_package_removal_sync_log_creation(self):
@@ -194,13 +199,17 @@ BROKEN_REQUIREMENTS = 'Django==1.4.1\n_--.>=asdhasjk ,,, [borked]\nSphinx==1.10'
 
 class TestProjectForms(TestCase):
     def setUp(self):
-        user = User.objects.create_user('apollo13', 'mail@example.com', 'pwd')
+        User.objects.create_user('apollo13', 'mail@example.com', 'pwd')
         self.c = Client()
         self.c.login(username='apollo13', password='pwd')
         Package.objects.bulk_create([
             Package(name='Django'),
             Package(name='Sphinx')
         ])
+
+    def test_create_project_without_req(self):
+        response = self.c.post('/projects/add/', {'slug':'test', 'name':'test'})
+        self.assertEqual(response.status_code, 302)
 
     def test_create_project(self):
         """Test that basic project creation works"""
@@ -223,6 +232,45 @@ class TestProjectForms(TestCase):
         # although the requirements are somewhat borked we import what we can
         self.assertEqual(p.dependencies.count(), 2)
 
+    def test_update_project(self):
+        """Test project changes work"""
+        response = self.c.post('/projects/add/', {'slug':'test', 'name':'test',
+            'requirements':ContentFile('Django==1.4.1', name='req.txt')})
+        p = Project.objects.get(slug='test')
+        dep = ProjectDependency.objects.get(project=p)
+        self.assertEqual(response.status_code, 302)
+        data = {
+            'projectmember_set-TOTAL_FORMS': u'1',
+            'projectmember_set-INITIAL_FORMS': u'1',
+            'projectmember_set-MAX_NUM_FORMS': u'',
+            'projectmember_set-0-id': str(p.projectmember_set.all()[0].pk),
+            'projectmember_set-0-state': u'0',
+            'dependencies-TOTAL_FORMS': u'1',
+            'dependencies-INITIAL_FORMS': u'1',
+            'dependencies-MAX_NUM_FORMS': u'',
+            'dependencies-0-id': str(dep.id),
+            'dependencies-0-version': u'1.5.1',
+        }
+        response = self.c.post('/project/test/edit/', data)
+        self.assertEqual(response.status_code, 302)
+
+        # Assert that logentries are created
+        log = Log.objects.get(type='project_dependency', action='update')
+        self.assertEqual(log.data['old_version'], '1.4.1')
+        self.assertEqual(log.data['version'], '1.5.1')
+
+        data['dependencies-0-DELETE'] = '1'
+        response = self.c.post('/project/test/edit/', data)
+        self.assertEqual(response.status_code, 302)
+
+        # Assert that logentries are created
+        log = Log.objects.get(type='project_dependency', action='remove')
+
+    def test_jabber_field(self):
+        """Make sure reg ex validation doesn't kick in for blank data"""
+        f = JabberField(required=False)
+        self.assertEqual(f.clean(''), '')
+
 
 class TestProjectModel(TestCase):
     def setUp(self):
@@ -236,6 +284,8 @@ class TestProjectModel(TestCase):
         self.assertEqual(log.type, 'project')
         self.assertEqual(log.package, None)
         self.assertEqual(log.user, self.user)
+        self.assertEqual(log.template,
+            'folivora/notifications/project.some_testing.html')
 
     def test_create_logentry_with_data(self):
         self.project.create_logentry(action='shoutout', user=self.user,
@@ -312,6 +362,19 @@ class TestUserProfileView(TestCase):
             'email': 'mail@example.com'})
         self.assertEqual(response.status_code, 200)
 
+    def test_set_user_lang(self):
+        self.c = Client()
+        user = User.objects.get(username='apollo13')
+        profile = user.get_profile()
+        profile.language = 'at'
+        profile.timezone = 'Europe/Vienna'
+        profile.save()
+        self.c.login(username='apollo13', password='pwd')
+        self.assertEqual(self.c.session['django_language'], 'at')
+        self.assertEqual(self.c.session['django_timezone'], 'Europe/Vienna')
+        profile.delete()
+        # Even without a profile login shouldn't throw errors.
+        self.c.login(username='apollo13', password='pwd')
 
 
 class TestUtils(TestCase):
@@ -328,3 +391,36 @@ class TestUtils(TestCase):
         packages, missing = parse_requirements(ContentFile(BROKEN_REQUIREMENTS))
         self.assertEqual(packages, {'Sphinx': '1.10', 'Django': '1.4.1'})
         self.assertEqual(missing, ['_--.>=asdhasjk ,,, [borked]\n'])
+        packages, missing = parse_requirements(ContentFile('Django'))
+        self.assertEqual(missing, ['Django'])
+
+    def test_sort_mixin(self):
+        p1 = Project.objects.create(name='test', slug='test')
+        p2 = Project.objects.create(name='apo', slug='zzz')
+
+        class Base(object):
+            class request():
+                GET = {}
+
+            def get_context_data(self):
+                return {}
+
+            def get_queryset(self):
+                return Project.objects.all()
+
+        class TestClass(SortListMixin, Base):
+            sort_fields = ['name', 'slug']
+
+        t = TestClass()
+        t.request.GET['sort'] = '-slug'
+
+        qs = t.get_queryset()
+        self.assertEqual(qs[0].pk, p2.pk)
+        self.assertEqual(t.get_context_data(), {
+            'sort_field': 'slug', 'sort_fields': ['name', 'slug'],
+            'sort_order': 'desc'
+        })
+
+        t.request.GET['sort'] = 'blabla'
+        qs = t.get_queryset()
+        self.assertEqual(qs[0].pk, p1.pk)

@@ -2,4 +2,4 @@
 source=folivora
 omit=folivora/migrations/*, folivora/tests.py
 [report]
-exclude_lines = def __unicode__
+exclude_lines = def __(unicode|repr)__

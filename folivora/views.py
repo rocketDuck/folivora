@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-
-
+import copy
 import json
 
 from django.core.urlresolvers import reverse_lazy, reverse
@@ -25,6 +24,7 @@ from .forms import (AddProjectForm, UpdateUserProfileForm,
 from .models import (Project, UserProfile, ProjectDependency, ProjectMember,
     Log, Package)
 from .utils import parse_requirements
+from .tasks import sync_project
 from .utils.views import SortListMixin, MemberRequiredMixin
 
 
@@ -93,15 +93,20 @@ class UpdateProjectView(MemberRequiredMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         ctx = self.get_context_data(**kwargs)
-        forms = [ctx['dep_form'], ctx['member_form']]
-        if all(map(lambda f: f.is_valid(), forms)):
-            for form in forms:
-                form.save()
-            object = Project.objects.get(slug=kwargs['slug'])
+        dep_form = ctx['dep_form']
+        member_form = ctx['member_form']
+        original_data = ProjectDependency.objects.in_bulk(
+            dep_form.get_queryset())
+        if all([dep_form.is_valid(), member_form.is_valid()]):
+            member_form.save()
+            dep_form.save()
+            ProjectDependency.process_changed_dependencies(dep_form,
+                original_data, self.request.user)
+            sync_project(dep_form.instance.pk)
             messages.success(request, _(u'Updated Project “{name}” '
-                'successfully.').format(name=object.name))
+                'successfully.').format(name=dep_form.instance.name))
             return HttpResponseRedirect(reverse('folivora_project_update',
-                                                kwargs={'slug': object.slug}))
+                                    kwargs={'slug': dep_form.instance.slug}))
         return self.render_to_response(ctx)
 
 
@@ -217,9 +222,7 @@ class ResignProjectView(MemberRequiredMixin, DeleteView):
     success_url = reverse_lazy('folivora_project_list')
 
     def get_object(self, queryset=None):
-        slug = self.kwargs.get('slug', None)
-        if slug is None:
-            raise AttributeError('ResignProjectView must be called with a slug')
+        slug = self.kwargs['slug']
         self.project = Project.objects.get(slug=slug)
         user = self.request.user
         return ProjectMember.objects.get(project=self.project, user=user)
@@ -249,7 +252,7 @@ class UpdateUserProfileView(LoginRequiredMixin, UpdateView):
         return response
 
     def get_object(self, queryset=None):
-        return self.request.user.get_profile()
+        return UserProfile.objects.get_or_create(user=self.request.user)[0]
 
 
 profile_edit = UpdateUserProfileView.as_view()

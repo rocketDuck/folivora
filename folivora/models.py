@@ -7,7 +7,6 @@ import pytz
 
 from django.conf import settings
 from django.db import models
-from django.db.models.loading import get_model
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.urlresolvers import reverse
@@ -161,6 +160,25 @@ class ProjectDependency(models.Model):
     @property
     def update_available(self):
         return self.update_id is not None
+
+    @classmethod
+    def process_changed_dependencies(cls, formset, original_data, user):
+        log_entries = []
+        for instance in formset.deleted_objects:
+            log_entries.append(Log(type='project_dependency', action='remove',
+                                   project_id=instance.project.pk,
+                                   package_id=instance.package.pk,
+                                   user=user,
+                                   data={'version': instance.version}))
+        for instance, d in formset.changed_objects:
+            existing = original_data[instance.pk]
+            log_entries.append(Log(type='project_dependency', action='update',
+                                   project_id=instance.project.pk,
+                                   package_id=instance.package.pk,
+                                   user=user,
+                                   data={'version': instance.version,
+                                         'old_version': existing.version}))
+        Log.objects.bulk_create(log_entries)
 
 
 class Log(models.Model):
