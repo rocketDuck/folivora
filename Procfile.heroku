@@ -1,2 +1,2 @@
-web: gunicorn example.wsgi -b 0.0.0.0:$PORT
-worker: #TODO
+web: gunicorn -k gevent -b 0.0.0.0:$PORT -w 3 folivora_heroku.wsgi:application
+celeryd: python manage.py celeryd -E -B --loglevel=INFO
