@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-08-19 11:24+0000\n"
-"PO-Revision-Date: 2012-08-19 13:24+0200\n"
+"POT-Creation-Date: 2012-08-19 11:41+0000\n"
+"PO-Revision-Date: 2012-08-19 13:41+0200\n"
 "Last-Translator: Oskar Hahn <mail@oshahn.de>\n"
 "Language-Team: Deutsch <mail@oshahn.de>\n"
 "Language: \n"
@@ -19,7 +19,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Gtranslator 2.91.5\n"
 
-#: forms.py:73 models.py:221
+#: forms.py:73 models.py:247
 msgid "Timezone"
 msgstr "Zeitzone"
 
@@ -40,7 +40,7 @@ msgstr "Url"
 msgid "provider"
 msgstr "Anbieter"
 
-#: models.py:69 models.py:81 models.py:146 models.py:186
+#: models.py:69 models.py:81 models.py:180 models.py:212
 msgid "package"
 msgstr "Paket"
 
@@ -48,7 +48,7 @@ msgstr "Paket"
 msgid "packages"
 msgstr "Pakete"
 
-#: models.py:83 models.py:147
+#: models.py:83 models.py:181
 msgid "version"
 msgstr "Version"
 
@@ -72,11 +72,11 @@ msgstr "Besitzer"
 msgid "Member"
 msgstr "Mitglied"
 
-#: models.py:102 models.py:121 models.py:144 models.py:185
+#: models.py:102 models.py:121 models.py:178 models.py:211
 msgid "project"
 msgstr "Project"
 
-#: models.py:103 models.py:188
+#: models.py:103 models.py:214
 msgid "user"
 msgstr "User"
 
@@ -112,59 +112,59 @@ msgstr "Mitglieder"
 msgid "projects"
 msgstr "Projekte"
 
-#: models.py:148
+#: models.py:182
 msgid "update"
 msgstr "update"
 
-#: models.py:152
+#: models.py:186
 msgid "project dependency"
 msgstr "Projekt Abhängigkeit"
 
-#: models.py:153
+#: models.py:187
 msgid "project dependencies"
 msgstr "Projekt Abhängigkeiten"
 
-#: models.py:189
+#: models.py:215
 msgid "when"
 msgstr "wann"
 
-#: models.py:190
+#: models.py:216
 msgid "action"
 msgstr "Aktion"
 
-#: models.py:191
+#: models.py:217
 msgid "type"
 msgstr "Type"
 
-#: models.py:197
+#: models.py:223
 msgid "log"
 msgstr "Logbuch"
 
-#: models.py:198
+#: models.py:224
 msgid "logs"
 msgstr "Logbücher"
 
-#: models.py:210
+#: models.py:236
 msgid "Changelog"
 msgstr "Änderungshistorie"
 
-#: models.py:214
+#: models.py:240
 msgid "Last Sync"
 msgstr "Letzte Synconisation"
 
-#: models.py:219
+#: models.py:245
 msgid "Language"
 msgstr "Sprache"
 
-#: models.py:222
+#: models.py:248
 msgid "JID"
 msgstr "JID"
 
-#: views.py:100
+#: views.py:98
 msgid "Updated Project “{name}” successfully."
 msgstr "Projekt „{name}“ erfolgreich angepasst."
 
-#: views.py:117
+#: views.py:115
 msgid "Deleted project “{name}” successfully."
 msgstr "Projekt „{name}“ erfolgreich gelöscht."
 
@@ -244,7 +244,7 @@ msgstr "Bearbeite Abhängigkeiten"
 #: templates/folivora/project_dependency_update.html:10
 #: templates/folivora/project_update.html:33
 msgid "Update dependencies"
-msgstr "aktualisiere Abhängigkeiten"
+msgstr "Aktualisiere Abhängigkeiten"
 
 #: templates/folivora/project_dependency_update.html:11
 #: templates/folivora/project_member_add.html:10
@@ -348,9 +348,18 @@ msgid "Save"
 msgstr "Speichern"
 
 #: templates/folivora/notifications/project.add.html:2
-#, fuzzy, python-format
+#, python-format
 msgid "%(user)s created project “%(name)s” %(timesince)s ago."
-msgstr "Projekt „{name}“ erfolgreich gelöscht."
+msgstr "%(user)s hat das Projekt „%(name)s“ vor %(timesince)s angelegt."
+
+#: templates/folivora/notifications/project_dependency.add.html:2
+#, python-format
+msgid ""
+"%(user)s added %(package)s @ %(version)s to the dependencies %(timesince)s "
+"ago."
+msgstr ""
+"%(user)s fügte %(package)s @ %(version)s zu den Abhängigkeiten vor "
+"%(timesince)s hinzu."
 
 #: templates/folivora/notifications/project_dependency.remove.html:2
 #, python-format
@@ -358,6 +367,8 @@ msgid ""
 "%(user)s removed %(package)s @ %(version)s from the dependencies "
 "%(timesince)s ago."
 msgstr ""
+"%(user)s löschte %(package)s @ %(version)s von den Abhängigkeiten vor "
+"%(timesince)s."
 
 #: templates/folivora/notifications/project_dependency.update.html:2
 #, python-format
@@ -365,6 +376,8 @@ msgid ""
 "%(user)s updated %(package)s from %(old_version)s to %(version)s "
 "%(timesince)s ago."
 msgstr ""
+"%(user)s aktualisierte %(package)s von %(old_version)s zu %(version)s vor "
+"%(timesince)s."
 
 #: templates/folivora/notifications/project_dependency.update_available.html:2
 #, python-format
@@ -372,10 +385,12 @@ msgid ""
 "Version <b>%(version)s of %(package)s</b> available on PyPI since "
 "%(timesince)s."
 msgstr ""
+"Version <b>%(version)s von %(package)s</b> ist verfügbar auf PyPI seit "
+"%(timesince)s."
 
 #: templates/registration/activate.html:5
 msgid "Account activation failed."
-msgstr ""
+msgstr "Die Nutzerkontoaktivierung ist Fehlgeschlagen."
 
 #: templates/registration/activate.html:7
 #, python-format
@@ -383,15 +398,17 @@ msgid ""
 "Account activation faild. Please check your activation key: "
 "%(activation_key)s"
 msgstr ""
+"Nutzerkontoaktivierung ist fehlgeschlagen. Bitte kontrolliere deinen "
+"Aktivierungsschlüssel: %(activation_key)s"
 
 #: templates/registration/activation_complete.html:5
 msgid "Account sucessfully activated"
-msgstr ""
+msgstr "Nutzerkonto wurde erfolgreich aktiviert"
 
 #: templates/registration/activation_complete.html:8
 #, python-format
 msgid "Click <a href=\"%(url)s\">here</a> to create a new project"
-msgstr ""
+msgstr "Klick <a href=\"%(url)s\">hier</a> um ein neues Projekt anzulegen"
 
 #: templates/registration/activation_email.txt:1
 #, python-format
@@ -403,28 +420,38 @@ msgid ""
 "\n"
 "Your %(domain)s-Team"
 msgstr ""
+"Hallom\n"
+"\n"
+"klicke auf den folgenden Link, um dein Nutzerkonto zu aktivieren.\n"
+"http://%(domain)s%(registration_activate_url)s\n"
+"\n"
+"Dein %(domain)s-Team"
 
 #: templates/registration/registration_closed.html:5
 msgid "Registration closed :("
-msgstr ""
+msgstr "Registrierung geschlossen :("
 
 #: templates/registration/registration_closed.html:7
 msgid "You can not register at the moment."
-msgstr ""
+msgstr "Du kannst dich im Moment nicht Registrieren."
 
 #: templates/registration/registration_complete.html:5
 msgid "Thank you for your registration!"
-msgstr ""
+msgstr "Danke für deine Registrierung!"
 
 #: templates/registration/registration_complete.html:7
 msgid ""
 "An activation mail will arrive shortly. Please also check your spam folder."
 msgstr ""
+"Eine Aktivierungsmail wird dich in kürze erreichen. Bitte kontrolliere "
+"ebenfalls deinen Spam-Ordner"
 
 #: templates/registration/registration_form.html:4
 msgid "Signup"
-msgstr ""
+msgstr "Anmelden"
 
 #: utils/forms.py:64
 msgid "The entered Jabber address is invalid. Please check your input."
 msgstr ""
+"Die eingegebene Jabber Adresse ist ungültig. Bitte kontrolliere deine "
+"Eingabe."
