@@ -50,14 +50,14 @@ class Package(models.Model):
             urls = client.get_release_urls(self.name, version)
             if urls:
                 url = urls[0]
-            utime = time.mktime(url['upload_time'].timetuple())
-            release_date = make_aware(
-                datetime.datetime.fromtimestamp(utime),
-                pytz.UTC)
-            PackageVersion.objects.get_or_create(
-                package=self,
-                version=version,
-                release_date=release_date)
+                utime = time.mktime(url['upload_time'].timetuple())
+                release_date = make_aware(
+                    datetime.datetime.fromtimestamp(utime),
+                    pytz.UTC)
+                PackageVersion.objects.get_or_create(
+                    package=self,
+                    version=version,
+                    release_date=release_date)
         self.initial_sync_done = True
         self.save()
 

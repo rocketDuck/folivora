@@ -33,6 +33,8 @@ class CheesyMock(object):
                 ['new_package', '0.1', 1345259834, 'new release']]
 
     def get_release_urls(self, name, version):
+        if name == 'gunicorn':
+            return []
         return [{'comment_text': '',
                  'downloads': 0,
                  'filename': 'pmxbot-1101.8.1.zip',
@@ -85,6 +87,16 @@ class TestPackageModel(TestCase):
         version = pkg.versions.all()[0]
         self.assertEqual(version.version, '1101.8.1')
         self.assertNumQueries(0, pkg.sync_versions)
+
+    @mock.patch('folivora.models.CheeseShop', CheesyMock)
+    def test_version_sync_without_versions(self):
+        #Bug group/337798
+        pkg = Package.objects.create(name='gunicorn',
+                                     url='http://pypi.python.org/pypi/gunicorn',
+                                     provider='pypi')
+        self.assertEqual(pkg.versions.count(), 0)
+        pkg.sync_versions()
+        self.assertEqual(pkg.versions.count(), 0)
 
 
 class TestPackageVersionModel(TestCase):
