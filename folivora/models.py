@@ -82,6 +82,7 @@ class PackageVersion(models.Model):
     class Meta:
         verbose_name = _('package version')
         verbose_name_plural = _('package versions')
+        unique_together = ('package', 'version')
 
     def __unicode__(self):
         return '{}{}'.format(self.package.name, self.version)
