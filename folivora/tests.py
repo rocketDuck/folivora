@@ -1,3 +1,5 @@
+import socket
+
 import pytz
 import mock
 
@@ -14,7 +16,7 @@ from django.test.utils import override_settings
 from django.contrib.auth.models import User
 
 from .models import (Package, PackageVersion, Project, Log,
-    ProjectDependency, ProjectMember)
+    ProjectDependency, ProjectMember, SyncState)
 from . import tasks
 from .utils import parse_requirements
 from .utils.jabber import is_valid_jid
@@ -54,6 +56,13 @@ class CheesyMock(object):
             return ['2012d']
         else:
             return ['0']
+
+
+class NotConnectedCheesyMock(object):
+    def get_changelog(self, hours, force=False):
+        err = socket.error()
+        err.errno = 111
+        raise err
 
 
 def stub(*args, **kwargs):
@@ -213,6 +222,19 @@ class TestChangelogSync(TestCase):
         self.assertTrue(result.successful())
         pkg = Package.objects.get(name='pmxbot2')
         self.assertEqual(pkg.versions.count(), 1)
+
+    @mock.patch('folivora.tasks.CheeseShop', NotConnectedCheesyMock)
+    @mock.patch('folivora.models.Package.sync_versions', stub)
+    def test_retry_sync_changelog_on_connection_error(self):
+        state, created = SyncState.objects.get_or_create(type=SyncState.CHANGELOG)
+        self.assertEqual(state.state, SyncState.STATE_RUNNING)
+        result = tasks.sync_with_changelog.apply(throw=True)
+        self.assertFalse(result.successful())
+        pkg = Package.objects.get(name='pmxbot2')
+        self.assertEqual(pkg.versions.count(), 0)
+        self.assertEqual(tasks.sync_with_changelog.iterations, 4)
+        state = SyncState.objects.get(type=SyncState.CHANGELOG)
+        self.assertEqual(state.state, SyncState.STATE_DOWN)
 
 
 class TestSyncProjectTask(TestCase):
