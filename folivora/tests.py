@@ -236,6 +236,17 @@ class TestChangelogSync(TestCase):
         state = SyncState.objects.get(type=SyncState.CHANGELOG)
         self.assertEqual(state.state, SyncState.STATE_DOWN)
 
+    @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
+    @mock.patch('folivora.models.Package.sync_versions', stub)
+    def test_test_sync_state_to_running_after_failure(self):
+        state, created = SyncState.objects.get_or_create(type=SyncState.CHANGELOG)
+        state.state = SyncState.STATE_DOWN
+        state.save()
+        result = tasks.sync_with_changelog.apply(throw=True)
+        self.assertTrue(result.successful())
+        state = SyncState.objects.get(type=SyncState.CHANGELOG)
+        self.assertEqual(state.state, SyncState.STATE_RUNNING)
+
 
 class TestSyncProjectTask(TestCase):
 
