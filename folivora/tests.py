@@ -29,6 +29,7 @@ class CheesyMock(object):
 
     def get_changelog(self, hours, force=False):
         return [['pmxbot', '1101.8.1', 1345259834, 'new release'],
+                ['pmxbot2', '1101.8.1', 1345259834, 'new release'],
                 ['gunicorn', '0.14.6', 1345259834, 'remove'],
                 ['new_package', '0.1', 1345259834, 'new release']]
 
@@ -47,7 +48,7 @@ class CheesyMock(object):
                  'url': 'http://pypi.python.org/packages/source/p/pmxbot/pmxbot-1101.8.1.zip'}]
 
     def get_package_versions(self, name):
-        if name == 'pmxbot':
+        if name in ('pmxbot', 'pmxbot2'):
             return ['1101.8.1']
         elif name == 'pytz':
             return ['2012d']
@@ -120,7 +121,8 @@ class TestPackageVersionModel(TestCase):
 class TestChangelogSync(TestCase):
 
     def setUp(self):
-        pkg = Package.create_with_provider_url('pmxbot')
+        self.pkg = pkg = Package.create_with_provider_url('pmxbot')
+        self.pkg2 = Package.create_with_provider_url('pmxbot2')
         dt = make_aware(datetime(2012, 7, 26, 23, 51, 18), pytz.UTC)
         PackageVersion.objects.create(package=pkg,
                                       version='1101.8.1',
@@ -201,6 +203,16 @@ class TestChangelogSync(TestCase):
         self.assertTrue(result.successful())
         qs = Log.objects.filter(project=self.project, action='remove_package')
         self.assertEqual(qs.count(), 1)
+
+    @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
+    @mock.patch('folivora.models.Package.sync_versions', stub)
+    def test_package_version_filter_on_package(self):
+        # Test that PackageVersion will be filtered properly
+        # with a requirement on `package`.
+        result = tasks.sync_with_changelog.apply(throw=True)
+        self.assertTrue(result.successful())
+        pkg = Package.objects.get(name='pmxbot2')
+        self.assertEqual(pkg.versions.count(), 1)
 
 
 class TestSyncProjectTask(TestCase):

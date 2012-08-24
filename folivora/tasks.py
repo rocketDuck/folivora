@@ -70,7 +70,9 @@ def sync_with_changelog():
 
             dt = datetime.datetime.fromtimestamp(stamp)
             release_date = timezone.make_aware(dt, pytz.UTC)
-            if not PackageVersion.objects.filter(version=version).exists():
+            exists = PackageVersion.objects.filter(package=pkg,
+                                                   version=version).exists()
+            if not exists:
                 update = PackageVersion(version=version,
                                         release_date=release_date)
                 pkg.versions.add(update)
