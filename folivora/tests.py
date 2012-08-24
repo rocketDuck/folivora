@@ -299,6 +299,7 @@ class TestSyncProjectTask(TestCase):
 VALID_REQUIREMENTS = 'Django==1.4.1\nSphinx==1.10'
 BROKEN_REQUIREMENTS = ('Django==1.4.1\n_--.>=asdhasjk ,,, [borked]\n'
                        'Sphinx==1.10')
+EMPTY_REQUIREMENTS = ''
 
 
 class TestProjectForms(TestCase):
@@ -575,17 +576,27 @@ class TestUtils(TestCase):
         self.assertTrue(is_valid_jid('apollo13@example.com/res'))
         self.assertFalse(is_valid_jid('example.com'))
 
-    def test_parse_requirements(self):
+    def test_parse_simple_requirements(self):
+        packages, missing = parse_requirements(ContentFile('Django'))
+        self.assertEqual(missing, ['Django'])
+
+    def test_parse_valid_requirements(self):
         packages, missing = parse_requirements(
             ContentFile(VALID_REQUIREMENTS).readlines())
         self.assertEqual(packages, {'Sphinx': '1.10', 'Django': '1.4.1'})
         self.assertFalse(missing)
+
+    def test_parse_broken_requirements(self):
         packages, missing = parse_requirements(
             ContentFile(BROKEN_REQUIREMENTS))
         self.assertEqual(packages, {'Sphinx': '1.10', 'Django': '1.4.1'})
         self.assertEqual(missing, ['_--.>=asdhasjk ,,, [borked]\n'])
-        packages, missing = parse_requirements(ContentFile('Django'))
-        self.assertEqual(missing, ['Django'])
+
+    def test_parse_empty_requirements(self):
+        packages, missing = parse_requirements(
+            ContentFile(EMPTY_REQUIREMENTS))
+        self.assertEqual(packages, {})
+        self.assertEqual(missing, [])
 
     def test_sort_mixin(self):
         p1 = Project.objects.create(name='test', slug='test')
