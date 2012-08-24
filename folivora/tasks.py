@@ -120,7 +120,7 @@ def sync_with_changelog():
 
             elif action == 'create':
                 if not Package.objects.filter(name=package).exists():
-                    Package.objects.create_with_provider(package)
+                    Package.create_with_provider_url(package)
 
         SyncState.objects.filter(type=SyncState.CHANGELOG) \
                          .update(last_sync=next_last_sync,
