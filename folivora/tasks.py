@@ -75,7 +75,7 @@ def sync_with_changelog():
             return
         else:
             current.iterations += 1
-            current.retry(countdown=0)
+            current.retry(countdown=0, exc=exc)
     else:
         for package, version, stamp, action in log:
             if action == 'new release':
