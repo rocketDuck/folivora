@@ -13,6 +13,7 @@ import logging
 import pytz
 from celery import task
 from celery.task import current
+from django.db import transaction
 from django.utils import timezone
 from distutils.version import LooseVersion
 
@@ -108,13 +109,14 @@ def sync_with_changelog():
                 # stability on ProjectDependency.
                 try:
                     pkg = Package.objects.get(name=package)
-                    if version is None:
-                        pkg.versions.all().delete()
-                    ProjectDependency.objects.filter(package=pkg) \
-                                             .update(update=None)
-                    log_affected_projects(pkg, action='remove_package',
-                                          type='package',
-                                          data={'package': package})
+                    with transaction.commit_on_success():
+                        if version is None:
+                            pkg.versions.all().delete()
+                        ProjectDependency.objects.filter(package=pkg) \
+                                                 .update(update=None)
+                        log_affected_projects(pkg, action='remove_package',
+                                              type='package',
+                                              data={'package': package})
                 except Package.DoesNotExist:
                     pass
 

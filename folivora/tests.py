@@ -33,6 +33,7 @@ class CheesyMock(object):
         return [['pmxbot', '1101.8.1', 1345259834, 'new release'],
                 ['pmxbot2', '1101.8.1', 1345259834, 'new release'],
                 ['gunicorn', '0.14.6', 1345259834, 'remove'],
+                ['gunicorn-del', None, 1345259834, 'remove'],
                 ['new_package', '0.1', 1345259834, 'new release'],
                 ['created package', '0.1', 1345259834, 'create']]
 
@@ -213,6 +214,22 @@ class TestChangelogSync(TestCase):
         self.assertTrue(result.successful())
         qs = Log.objects.filter(project=self.project, action='remove_package')
         self.assertEqual(qs.count(), 1)
+
+    @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
+    @mock.patch('folivora.models.Package.sync_versions', stub)
+    def test_package_removal_sync_delete_versions(self):
+        pkg = Package.create_with_provider_url('gunicorn-del')
+        dt = make_aware(datetime(2012, 7, 26, 23, 51, 18), pytz.UTC)
+        pkg.versions.add(PackageVersion(version='0.14.6', release_date=dt))
+        result = tasks.sync_with_changelog.apply(throw=True)
+        self.assertTrue(result.successful())
+
+        # Check that the log as created
+        qs = Log.objects.filter(project=self.project, action='remove_package')
+        self.assertEqual(qs.count(), 1)
+
+        pkg = Package.objects.get(name='gunicorn-del')
+        self.assertEqual(pkg.versions.count(), 0)
 
     @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
     @mock.patch('folivora.models.Package.sync_versions', stub)
