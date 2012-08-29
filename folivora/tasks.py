@@ -110,10 +110,12 @@ def sync_with_changelog():
                 try:
                     pkg = Package.objects.get(name=package)
                     with transaction.commit_on_success():
-                        if version is None:
-                            pkg.versions.all().delete()
                         ProjectDependency.objects.filter(package=pkg) \
                                                  .update(update=None)
+
+                        if version is None:
+                            pkg.versions.all().delete()
+
                         log_affected_projects(pkg, action='remove_package',
                                               type='package',
                                               data={'package': package})
