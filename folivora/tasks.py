@@ -8,8 +8,12 @@
 """
 import time
 import datetime
+import socket
+import logging
 import pytz
 from celery import task
+from celery.task import current
+from django.db import transaction
 from django.utils import timezone
 from distutils.version import LooseVersion
 
@@ -17,6 +21,9 @@ from .models import (SyncState, Package, PackageVersion,
     ProjectDependency, Log, Project)
 from .utils.pypi import CheeseShop
 from .utils.notifications import route_notifications
+
+
+logger = logging.getLogger(__name__)
 
 
 def log_affected_projects(pkg, **kwargs):
@@ -33,7 +40,7 @@ def log_affected_projects(pkg, **kwargs):
     return affected_projects
 
 
-@task
+@task(max_retries=4, iterations=0)
 def sync_with_changelog():
     """Syncronize with pypi changelog.
 
@@ -52,61 +59,76 @@ def sync_with_changelog():
     """
     next_last_sync = timezone.now()
 
-    state, created = SyncState.objects.get_or_create(
-        type=SyncState.CHANGELOG,
-        defaults={'last_sync': timezone.now()})
+    state, created = SyncState.objects.get_or_create(type=SyncState.CHANGELOG)
 
     epoch = int(time.mktime(state.last_sync.timetuple()))
 
     client = CheeseShop()
-    log = client.get_changelog(epoch, True)
 
-    for package, version, stamp, action in log:
-        if action == 'new release':
-            try:
-                pkg = Package.objects.get(name=package)
-            except Package.DoesNotExist:
-                pkg = Package.create_with_provider_url(package)
+    try:
+        log = client.get_changelog(epoch, True)
+    except socket.error as exc:
+        if current.iterations == current.max_retries:
+            SyncState.objects.filter(type=SyncState.CHANGELOG) \
+                             .update(state=SyncState.STATE_DOWN)
+            logger.warning('No sync with PyPi, it\'s not reachable.')
+            return
+        else:
+            current.iterations += 1
+            current.retry(countdown=0, exc=exc)
+    else:
+        for package, version, stamp, action in log:
+            if action == 'new release':
+                try:
+                    pkg = Package.objects.get(name=package)
+                except Package.DoesNotExist:
+                    pkg = Package.create_with_provider_url(package)
 
-            dt = datetime.datetime.fromtimestamp(stamp)
-            release_date = timezone.make_aware(dt, pytz.UTC)
-            if not PackageVersion.objects.filter(version=version).exists():
-                update = PackageVersion(version=version,
-                                        release_date=release_date)
-                pkg.versions.add(update)
-                ProjectDependency.objects.filter(package=pkg) \
-                                         .update(update=update)
+                dt = datetime.datetime.fromtimestamp(stamp)
+                release_date = timezone.make_aware(dt, pytz.UTC)
+                exists = PackageVersion.objects.filter(package=pkg,
+                                                       version=version).exists()
+                if not exists:
+                    update = PackageVersion(version=version,
+                                            release_date=release_date)
+                    pkg.versions.add(update)
+                    ProjectDependency.objects.filter(package=pkg) \
+                                             .update(update=update)
 
-            projects = log_affected_projects(pkg,
-                                             action='new_release',
-                                             type='package',
-                                             data={'version': version})
+                projects = log_affected_projects(pkg,
+                                                 action='new_release',
+                                                 type='package',
+                                                 data={'version': version})
 
-            for project in projects:
-                sync_project.apply(args=(project,))
+                for project in projects:
+                    sync_project.apply(args=(project,))
 
-        elif action == 'remove':
-            # We only clear versions and set the recent updated version
-            # on every project dependency to NULL. This way we can ensure
-            # stability on ProjectDependency.
-            try:
-                pkg = Package.objects.get(name=package)
-                if version is None:
-                    pkg.versions.all().delete()
-                ProjectDependency.objects.filter(package=pkg) \
-                                         .update(update=None)
-                log_affected_projects(pkg, action='remove_package',
-                                      type='package',
-                                      data={'package': package})
-            except Package.DoesNotExist:
-                pass
+            elif action == 'remove':
+                # We only clear versions and set the recent updated version
+                # on every project dependency to NULL. This way we can ensure
+                # stability on ProjectDependency.
+                try:
+                    pkg = Package.objects.get(name=package)
+                    with transaction.commit_on_success():
+                        ProjectDependency.objects.filter(package=pkg) \
+                                                 .update(update=None)
 
-        elif action == 'create':
-            if not Package.objects.filter(name=package).exists():
-                Package.objects.create_with_provider(package)
+                        if version is None:
+                            pkg.versions.all().delete()
 
-    SyncState.objects.filter(type=SyncState.CHANGELOG) \
-                     .update(last_sync=next_last_sync)
+                        log_affected_projects(pkg, action='remove_package',
+                                              type='package',
+                                              data={'package': package})
+                except Package.DoesNotExist:
+                    pass
+
+            elif action == 'create':
+                if not Package.objects.filter(name=package).exists():
+                    Package.create_with_provider_url(package)
+
+        SyncState.objects.filter(type=SyncState.CHANGELOG) \
+                         .update(last_sync=next_last_sync,
+                                 state=SyncState.STATE_RUNNING)
 
 
 @task

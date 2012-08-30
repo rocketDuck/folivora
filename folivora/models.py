@@ -234,8 +234,18 @@ class SyncState(models.Model):
         (_('Changelog'), CHANGELOG),
     )
 
+    STATE_DOWN = 'down'
+    STATE_RUNNING = 'running'
+
+    STATE_CHOICES = (
+        (_('Down'), STATE_DOWN),
+        (_('Running'), STATE_RUNNING),
+    )
+
     type = models.CharField(max_length=255, choices=TYPE_CHOICES, unique=True)
-    last_sync = models.DateTimeField(_('Last Sync'))
+    state = models.CharField(max_length=255, choices=STATE_CHOICES,
+                             default=STATE_RUNNING)
+    last_sync = models.DateTimeField(_('Last Sync'), default=now)
 
 
 class UserProfile(models.Model):

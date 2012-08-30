@@ -1,6 +1,7 @@
 from django.conf.urls import patterns, include, url
 
-from . import receivers # register signal handlers
+# register signal handlers
+from . import receivers
 
 
 project_patterns = patterns('folivora.views',

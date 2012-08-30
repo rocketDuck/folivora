@@ -28,9 +28,9 @@ def send_update_avilable_notification(log):
     """
     msg = loader.render_to_string('notifications/update_available.mail.txt',
                                   {'log': log})
-    subject = _('{prefix}New update available for project "{project}"').format(**{
-        'prefix': settings.EMAIL_SUBJECT_PREFIX,
-        'project': log.project.name})
+    tmpl = _('{prefix}New update available for project "{project}"')
+    subject = tmpl.format(**{'prefix': settings.EMAIL_SUBJECT_PREFIX,
+                             'project': log.project.name})
 
     mails = []
     members = log.project.projectmember_set.all()

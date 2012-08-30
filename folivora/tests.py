@@ -1,3 +1,5 @@
+import socket
+
 import pytz
 import mock
 
@@ -14,7 +16,7 @@ from django.test.utils import override_settings
 from django.contrib.auth.models import User
 
 from .models import (Package, PackageVersion, Project, Log,
-    ProjectDependency, ProjectMember)
+    ProjectDependency, ProjectMember, SyncState)
 from . import tasks
 from .utils import parse_requirements
 from .utils.jabber import is_valid_jid
@@ -29,8 +31,11 @@ class CheesyMock(object):
 
     def get_changelog(self, hours, force=False):
         return [['pmxbot', '1101.8.1', 1345259834, 'new release'],
+                ['pmxbot2', '1101.8.1', 1345259834, 'new release'],
                 ['gunicorn', '0.14.6', 1345259834, 'remove'],
-                ['new_package', '0.1', 1345259834, 'new release']]
+                ['gunicorn-del', None, 1345259834, 'remove'],
+                ['new_package', '0.1', 1345259834, 'new release'],
+                ['created package', '0.1', 1345259834, 'create']]
 
     def get_release_urls(self, name, version):
         if name == 'gunicorn':
@@ -47,12 +52,19 @@ class CheesyMock(object):
                  'url': 'http://pypi.python.org/packages/source/p/pmxbot/pmxbot-1101.8.1.zip'}]
 
     def get_package_versions(self, name):
-        if name == 'pmxbot':
+        if name in ('pmxbot', 'pmxbot2'):
             return ['1101.8.1']
         elif name == 'pytz':
             return ['2012d']
         else:
             return ['0']
+
+
+class NotConnectedCheesyMock(object):
+    def get_changelog(self, hours, force=False):
+        err = socket.error()
+        err.errno = 111
+        raise err
 
 
 def stub(*args, **kwargs):
@@ -120,7 +132,8 @@ class TestPackageVersionModel(TestCase):
 class TestChangelogSync(TestCase):
 
     def setUp(self):
-        pkg = Package.create_with_provider_url('pmxbot')
+        self.pkg = pkg = Package.create_with_provider_url('pmxbot')
+        self.pkg2 = Package.create_with_provider_url('pmxbot2')
         dt = make_aware(datetime(2012, 7, 26, 23, 51, 18), pytz.UTC)
         PackageVersion.objects.create(package=pkg,
                                       version='1101.8.1',
@@ -202,6 +215,83 @@ class TestChangelogSync(TestCase):
         qs = Log.objects.filter(project=self.project, action='remove_package')
         self.assertEqual(qs.count(), 1)
 
+    @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
+    @mock.patch('folivora.models.Package.sync_versions', stub)
+    def test_package_removal_sync_delete_versions(self):
+        pkg = Package.create_with_provider_url('gunicorn-del')
+        dt = make_aware(datetime(2012, 7, 26, 23, 51, 18), pytz.UTC)
+        pkg.versions.add(PackageVersion(version='0.14.6', release_date=dt))
+        result = tasks.sync_with_changelog.apply(throw=True)
+        self.assertTrue(result.successful())
+
+        # Check that the log as created
+        qs = Log.objects.filter(project=self.project, action='remove_package')
+        self.assertEqual(qs.count(), 1)
+
+        pkg = Package.objects.get(name='gunicorn-del')
+        self.assertEqual(pkg.versions.count(), 0)
+
+    @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
+    @mock.patch('folivora.models.Package.sync_versions', stub)
+    def test_package_removal_sync_delete_versions_preserve_dependencies(self):
+        pkg = Package.create_with_provider_url('gunicorn-del')
+        dt = make_aware(datetime(2012, 7, 26, 23, 51, 18), pytz.UTC)
+        version = PackageVersion(version='0.14.6', release_date=dt)
+        pkg.versions.add(version)
+        dep = ProjectDependency.objects.create(
+            project=self.project,
+            package=pkg,
+            version='0.14.6',
+            update=version)
+        result = tasks.sync_with_changelog.apply(throw=True)
+        self.assertTrue(result.successful())
+
+        pkg = Package.objects.get(name='gunicorn-del')
+        expected = pkg.projectdependency_set.get(version='0.14.6')
+        self.assertEqual(expected, dep)
+        self.assertEqual(expected.update, None)
+
+    @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
+    @mock.patch('folivora.models.Package.sync_versions', stub)
+    def test_package_version_filter_on_package(self):
+        # Test that PackageVersion will be filtered properly
+        # with a requirement on `package`.
+        result = tasks.sync_with_changelog.apply(throw=True)
+        self.assertTrue(result.successful())
+        pkg = Package.objects.get(name='pmxbot2')
+        self.assertEqual(pkg.versions.count(), 1)
+
+    @mock.patch('folivora.tasks.CheeseShop', NotConnectedCheesyMock)
+    @mock.patch('folivora.models.Package.sync_versions', stub)
+    def test_retry_sync_changelog_on_connection_error(self):
+        state, created = SyncState.objects.get_or_create(type=SyncState.CHANGELOG)
+        self.assertEqual(state.state, SyncState.STATE_RUNNING)
+        result = tasks.sync_with_changelog.apply(throw=True)
+        self.assertFalse(result.successful())
+        pkg = Package.objects.get(name='pmxbot2')
+        self.assertEqual(pkg.versions.count(), 0)
+        self.assertEqual(tasks.sync_with_changelog.iterations, 4)
+        state = SyncState.objects.get(type=SyncState.CHANGELOG)
+        self.assertEqual(state.state, SyncState.STATE_DOWN)
+
+    @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
+    @mock.patch('folivora.models.Package.sync_versions', stub)
+    def test_sync_state_to_running_after_failure(self):
+        state, created = SyncState.objects.get_or_create(type=SyncState.CHANGELOG)
+        state.state = SyncState.STATE_DOWN
+        state.save()
+        result = tasks.sync_with_changelog.apply(throw=True)
+        self.assertTrue(result.successful())
+        state = SyncState.objects.get(type=SyncState.CHANGELOG)
+        self.assertEqual(state.state, SyncState.STATE_RUNNING)
+
+    @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
+    @mock.patch('folivora.models.Package.sync_versions', stub)
+    def test_package_create(self):
+        result = tasks.sync_with_changelog.apply(throw=True)
+        self.assertTrue(result.successful())
+        self.assertTrue(Package.objects.filter(name='created package').exists())
+
 
 class TestSyncProjectTask(TestCase):
 
@@ -254,6 +344,7 @@ class TestSyncProjectTask(TestCase):
 VALID_REQUIREMENTS = 'Django==1.4.1\nSphinx==1.10'
 BROKEN_REQUIREMENTS = ('Django==1.4.1\n_--.>=asdhasjk ,,, [borked]\n'
                        'Sphinx==1.10')
+EMPTY_REQUIREMENTS = ''
 
 
 class TestProjectForms(TestCase):
@@ -530,17 +621,27 @@ class TestUtils(TestCase):
         self.assertTrue(is_valid_jid('apollo13@example.com/res'))
         self.assertFalse(is_valid_jid('example.com'))
 
-    def test_parse_requirements(self):
+    def test_parse_simple_requirements(self):
+        packages, missing = parse_requirements(ContentFile('Django'))
+        self.assertEqual(missing, ['Django'])
+
+    def test_parse_valid_requirements(self):
         packages, missing = parse_requirements(
             ContentFile(VALID_REQUIREMENTS).readlines())
         self.assertEqual(packages, {'Sphinx': '1.10', 'Django': '1.4.1'})
         self.assertFalse(missing)
+
+    def test_parse_broken_requirements(self):
         packages, missing = parse_requirements(
             ContentFile(BROKEN_REQUIREMENTS))
         self.assertEqual(packages, {'Sphinx': '1.10', 'Django': '1.4.1'})
         self.assertEqual(missing, ['_--.>=asdhasjk ,,, [borked]\n'])
-        packages, missing = parse_requirements(ContentFile('Django'))
-        self.assertEqual(missing, ['Django'])
+
+    def test_parse_empty_requirements(self):
+        packages, missing = parse_requirements(
+            ContentFile(EMPTY_REQUIREMENTS))
+        self.assertEqual(packages, {})
+        self.assertEqual(missing, [])
 
     def test_sort_mixin(self):
         p1 = Project.objects.create(name='test', slug='test')
