@@ -236,16 +236,20 @@ class TestChangelogSync(TestCase):
     def test_package_removal_sync_delete_versions_preserve_dependencies(self):
         pkg = Package.create_with_provider_url('gunicorn-del')
         dt = make_aware(datetime(2012, 7, 26, 23, 51, 18), pytz.UTC)
-        pkg.versions.add(PackageVersion(version='0.14.6', release_date=dt))
+        version = PackageVersion(version='0.14.6', release_date=dt)
+        pkg.versions.add(version)
         dep = ProjectDependency.objects.create(
             project=self.project,
             package=pkg,
-            version='0.14.6')
+            version='0.14.6',
+            update=version)
         result = tasks.sync_with_changelog.apply(throw=True)
         self.assertTrue(result.successful())
 
         pkg = Package.objects.get(name='gunicorn-del')
-        self.assertEqual(pkg.projectdependency_set.get(version='0.14.6'), dep)
+        expected = pkg.projectdependency_set.get(version='0.14.6')
+        self.assertEqual(expected, dep)
+        self.assertEqual(expected.update, None)
 
     @mock.patch('folivora.tasks.CheeseShop', CheesyMock)
     @mock.patch('folivora.models.Package.sync_versions', stub)
