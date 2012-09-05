@@ -129,8 +129,9 @@ class Project(models.Model):
     @property
     def requirements(self):
         query = ProjectDependency.objects.filter(project=self) \
-                                         .select_related('package')
-        return "\n".join([d.dependency_string for d in query.all()])
+                                         .select_related('package') \
+                                         .order_by('package__name')
+        return "\n".join([d.dependency_string for d in query])
 
     @property
     def requirement_dict(self):

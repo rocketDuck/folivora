@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy, ugettext as _
 from .models import (Project, UserProfile, Package, ProjectDependency,
     ProjectMember)
 from .utils.forms import ModelForm, JabberField
-from .utils import parse_requirements
+from .utils.parsers import get_parser, get_parser_choices
 from .tasks import sync_project
 
 import floppyforms as forms
@@ -17,6 +17,7 @@ TIMEZONES = pytz.common_timezones
 
 class AddProjectForm(ModelForm):
     requirements = forms.FileField(required=False)
+    parser = forms.ChoiceField(choices=get_parser_choices())
 
     class Meta:
         model = Project
@@ -26,28 +27,27 @@ class AddProjectForm(ModelForm):
         self.user = kwargs.pop('user')
         super(AddProjectForm, self).__init__(*args, **kwargs)
 
-    def clean_requirements(self):
-        data = self.cleaned_data['requirements']
-        if data is None:
-            return []
-
-        packages, missing = parse_requirements(data)
-
-        known_packages = Package.objects.filter(name__in=packages.keys())\
-            .values_list('name', 'pk')
-        known_package_names = map(lambda x: x[0], known_packages)
-
-        # TODO: report missing back to the ui.
-        missing.extend(
-            set(packages.keys()).difference(set(known_package_names)))
-
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        data = cleaned_data.get('requirements', None)
         project_deps = []
+        if data and 'parser' in cleaned_data:
+            parser = get_parser(self.cleaned_data['parser'])
+            packages, missing = parser.parse(data)
 
-        for name, pk in known_packages:
-            project_deps.append(ProjectDependency(package_id=pk,
-                                                  version=packages[name]))
+            known_packages = Package.objects.filter(name__in=packages.keys())\
+                .values_list('name', 'pk')
+            known_package_names = map(lambda x: x[0], known_packages)
 
-        return project_deps
+            # TODO: report missing back to the ui.
+            missing.extend(
+                set(packages.keys()).difference(set(known_package_names)))
+
+            for name, pk in known_packages:
+                project_deps.append(ProjectDependency(package_id=pk,
+                                                      version=packages[name]))
+        cleaned_data['requirements'] = project_deps
+        return cleaned_data
 
     def save(self, commit=True):
         project = super(AddProjectForm, self).save(True)
@@ -102,20 +102,24 @@ class CreateProjectMemberForm(ModelForm):
 
 class UpdateProjectDependencyForm(forms.Form):
     packages = forms.CharField(widget=forms.Textarea, required=False)
+    parser = forms.ChoiceField(choices=get_parser_choices())
 
-    def clean_packages(self):
-        data = self.cleaned_data['packages']
-        packages, missing_packages = parse_requirements(
-            data.splitlines())
-        known_packages = set(Package.objects.filter(name__in=packages)
-                                   .values_list('name', flat=True))
-        unknown_packages = set(packages).difference(known_packages)
-        if unknown_packages:
-            raise ValidationError(_(
-                'Could not find the following dependencies: %s') %
-                ', '.join(unknown_packages))
-        if missing_packages:
-            raise ValidationError(_(
-                'Could not parse the following dependencies: %s') %
-                ', '.join(missing_packages))
-        return packages
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        if 'packages' in cleaned_data and 'parser' in cleaned_data:
+            data = self.cleaned_data['packages']
+            parser = get_parser(self.cleaned_data['parser'])
+            packages, missing_packages = parser.parse(data.splitlines())
+            known_packages = set(Package.objects.filter(name__in=packages)
+                                       .values_list('name', flat=True))
+            unknown_packages = set(packages).difference(known_packages)
+            if unknown_packages:
+                raise ValidationError(_(
+                    'Could not find the following dependencies: %s') %
+                    ', '.join(unknown_packages))
+            if missing_packages:
+                raise ValidationError(_(
+                    'Could not parse the following dependencies: %s') %
+                    ', '.join(missing_packages))
+            cleaned_data['packages'] = packages
+        return cleaned_data
