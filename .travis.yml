@@ -7,4 +7,4 @@ install:
 before_script:
   - psql -c 'create extension hstore;' -U postgres template1
   - psql -c 'create database folivora;' -U postgres
-script: coverage run ./manage.py test folivora && coverage report
+script: coverage run ./manage.py test folivora && coverage report -m
