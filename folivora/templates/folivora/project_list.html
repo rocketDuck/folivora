@@ -28,6 +28,10 @@
           <a href="{% url 'folivora_project_resign' project.slug %}" title="{% trans 'resign' %}"><i class="icon-leaf"></i></a>
         </td>
       </tr>
+    {% empty %}
+    <tr>
+      <td colspan="2">No projects defined yet, <a href="{% url 'folivora_project_add' %}">create your first project now!</a></td>
+    </tr>
     {% endfor %}
   </tbody>
 </table>
