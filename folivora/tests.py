@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 from .models import (Package, PackageVersion, Project, Log,
     ProjectDependency, ProjectMember, SyncState)
 from . import tasks
-from .utils import parse_requirements
+from .utils.parsers import get_parser
 from .utils.jabber import is_valid_jid
 from .utils.forms import JabberField
 from .utils.views import SortListMixin
@@ -367,7 +367,8 @@ class TestProjectForms(TestCase):
 
     def test_create_project_without_req(self):
         response = self.c.post('/projects/add/',
-                               {'slug': 'test', 'name': 'test'})
+                               {'slug': 'test', 'name': 'test',
+                                'parser': 'pip_requirements'})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['Location'],
                          'http://testserver/project/test/')
@@ -376,7 +377,8 @@ class TestProjectForms(TestCase):
         """Test that basic project creation works"""
         response = self.c.post('/projects/add/', {
             'slug': 'test', 'name': 'test',
-            'requirements': ContentFile(VALID_REQUIREMENTS, name='req.txt')})
+            'requirements': ContentFile(VALID_REQUIREMENTS, name='req.txt'),
+            'parser': 'pip_requirements'})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['Location'],
                          'http://testserver/project/test/')
@@ -391,7 +393,8 @@ class TestProjectForms(TestCase):
         """Ensure that unsupported requirement lines are skipped"""
         response = self.c.post('/projects/add/', {
             'slug': 'test', 'name': 'test',
-            'requirements': ContentFile(BROKEN_REQUIREMENTS, name='req.txt')})
+            'requirements': ContentFile(BROKEN_REQUIREMENTS, name='req.txt'),
+            'parser': 'pip_requirements'})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['Location'],
                          'http://testserver/project/test/')
@@ -403,7 +406,8 @@ class TestProjectForms(TestCase):
         """Test project changes work"""
         response = self.c.post('/projects/add/', {
             'slug': 'test', 'name': 'test',
-            'requirements': ContentFile('Django==1.4.1', name='req.txt')})
+            'requirements': ContentFile('Django==1.4.1', name='req.txt'),
+            'parser': 'pip_requirements'})
         p = Project.objects.get(slug='test')
         dep = ProjectDependency.objects.get(project=p)
         self.assertEqual(response.status_code, 302)
@@ -506,7 +510,8 @@ class TestProjectViews(TestCase):
         self.assertFalse(response.context['log_entries'])
         self.c.post('/projects/add/',
                    {'name': 'new_project',
-                    'slug': 'new_project'})
+                    'slug': 'new_project',
+                    'parser': 'pip_requirements'})
         response = self.c.get('/dashboard/')
         self.assertEqual(len(response.context['log_entries']), 1)
 
@@ -568,13 +573,15 @@ class TestProjectViews(TestCase):
         response = self.c.get('/project/test/deps/')
         self.assertEqual(response.context['form'].initial['packages'], '')
         response = self.c.post('/project/test/deps/',
-                               {'packages': 'Django==1\ntest==2'})
+                               {'packages': 'Django==1\ntest==2',
+                                'parser': 'pip_requirements'})
         self.assertEqual(response.status_code, 302)
         response = self.c.get('/project/test/deps/')
         self.assertEqual(response.context['form'].initial['packages'],
                          'Django==1\ntest==2')
         response = self.c.post('/project/test/deps/',
-                               {'packages': 'Django==2\ntest==2\nnew==3'})
+                               {'packages': 'Django==2\ntest==2\nnew==3',
+                                'parser': 'pip_requirements'})
         self.assertTrue(ProjectDependency.objects.filter(
             project=self.project, package=self.new_package).exists())
         response = self.c.post('/project/test/deps/',
@@ -629,28 +636,6 @@ class TestUtils(TestCase):
         self.assertTrue(is_valid_jid('apollo13@example.com/res'))
         self.assertFalse(is_valid_jid('example.com'))
 
-    def test_parse_simple_requirements(self):
-        packages, missing = parse_requirements(ContentFile('Django'))
-        self.assertEqual(missing, ['Django'])
-
-    def test_parse_valid_requirements(self):
-        packages, missing = parse_requirements(
-            ContentFile(VALID_REQUIREMENTS).readlines())
-        self.assertEqual(packages, {'Sphinx': '1.10', 'Django': '1.4.1'})
-        self.assertFalse(missing)
-
-    def test_parse_broken_requirements(self):
-        packages, missing = parse_requirements(
-            ContentFile(BROKEN_REQUIREMENTS))
-        self.assertEqual(packages, {'Sphinx': '1.10', 'Django': '1.4.1'})
-        self.assertEqual(missing, ['_--.>=asdhasjk ,,, [borked]\n'])
-
-    def test_parse_empty_requirements(self):
-        packages, missing = parse_requirements(
-            ContentFile(EMPTY_REQUIREMENTS))
-        self.assertEqual(packages, {})
-        self.assertEqual(missing, [])
-
     def test_sort_mixin(self):
         p1 = Project.objects.create(name='test', slug='test')
         p2 = Project.objects.create(name='apo', slug='zzz')
@@ -681,3 +666,31 @@ class TestUtils(TestCase):
         t.request.GET['sort'] = 'blabla'
         qs = t.get_queryset()
         self.assertEqual(qs[0].pk, p1.pk)
+
+
+class TestPipRequirementsParsers(TestCase):
+
+    def setUp(self):
+        self.parse = get_parser('pip_requirements').parse
+
+    def test_pip_requirements_parse_simple(self):
+        packages, missing = self.parse(ContentFile('Django'))
+        self.assertEqual(missing, ['Django'])
+
+    def test_pip_requirements_parse_valid(self):
+        packages, missing = self.parse(
+            ContentFile(VALID_REQUIREMENTS).readlines())
+        self.assertEqual(packages, {'Sphinx': '1.10', 'Django': '1.4.1'})
+        self.assertFalse(missing)
+
+    def test_pip_requirements_parse_parse_broken(self):
+        packages, missing = self.parse(
+            ContentFile(BROKEN_REQUIREMENTS))
+        self.assertEqual(packages, {'Sphinx': '1.10', 'Django': '1.4.1'})
+        self.assertEqual(missing, ['_--.>=asdhasjk ,,, [borked]\n'])
+
+    def test_pip_requirements_parse_empty(self):
+        packages, missing = self.parse(
+            ContentFile(EMPTY_REQUIREMENTS))
+        self.assertEqual(packages, {})
+        self.assertEqual(missing, [])
