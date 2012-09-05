@@ -198,7 +198,7 @@ class TestChangelogSync(TestCase):
     def test_new_release_sync_log_creation(self):
         result = tasks.sync_with_changelog.apply(throw=True)
         self.assertTrue(result.successful())
-        qs = Log.objects.filter(project=self.project, action='new_release')
+        qs = Log.objects.filter(project=self.project, action='update_available')
         self.assertEqual(qs.count(), 1)
         self.assertEqual(len(mail.outbox), 1)
 

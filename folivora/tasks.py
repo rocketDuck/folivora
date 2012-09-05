@@ -95,11 +95,8 @@ def sync_with_changelog():
                     ProjectDependency.objects.filter(package=pkg) \
                                              .update(update=update)
 
-                projects.update(
-                    log_affected_projects(pkg,
-                                          action='new_release',
-                                          type='package',
-                                          data={'version': version}))
+                projects.update(Project.objects.filter(dependencies__package=pkg) \
+                                               .values_list('id', flat=True))
 
             elif action == 'remove':
                 # We only clear versions and set the recent updated version
@@ -114,8 +111,7 @@ def sync_with_changelog():
                         pkg.versions.all().delete()
 
                     log_affected_projects(pkg, action='remove_package',
-                                          type='package',
-                                          data={'package': package})
+                                          type='package', package=pkg)
                 except Package.DoesNotExist:
                     pass
 

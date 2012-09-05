@@ -221,6 +221,11 @@ class Log(models.Model):
         verbose_name = _('log')
         verbose_name_plural = _('logs')
 
+    def __unicode__(self):
+        return '{}.{}, package: {}, project: {}'.format(self.type, self.action,
+                                                        self.package_id,
+                                                        self.project_id)
+
     @property
     def template(self):
         return 'folivora/notifications/{}.{}.html'.format(self.type,
