@@ -1,4 +1,5 @@
 import socket
+import logging
 
 import pytz
 import mock
@@ -22,6 +23,12 @@ from .utils import parse_requirements
 from .utils.jabber import is_valid_jid
 from .utils.forms import JabberField
 from .utils.views import SortListMixin
+
+
+test_logger = logging.getLogger(__name__)
+test_handler = logging.NullHandler()
+test_handler.setLevel(logging.DEBUG)
+test_logger.addHandler(test_handler)
 
 
 class CheesyMock(object):
@@ -262,6 +269,7 @@ class TestChangelogSync(TestCase):
         self.assertEqual(pkg.versions.count(), 1)
 
     @mock.patch('folivora.tasks.CheeseShop', NotConnectedCheesyMock)
+    @mock.patch('folivora.tasks.logger', test_logger)
     @mock.patch('folivora.models.Package.sync_versions', stub)
     def test_retry_sync_changelog_on_connection_error(self):
         state, created = SyncState.objects.get_or_create(type=SyncState.CHANGELOG)
