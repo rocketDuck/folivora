@@ -32,7 +32,7 @@ class AddProjectForm(ModelForm):
         data = cleaned_data.get('requirements', None)
         project_deps = []
         if data and 'parser' in cleaned_data:
-            parser = get_parser(self.cleaned_data['parser'])
+            parser = get_parser(cleaned_data['parser'])
             packages, missing = parser.parse(data)
 
             known_packages = Package.objects.filter(name__in=packages.keys())\
@@ -107,8 +107,8 @@ class UpdateProjectDependencyForm(forms.Form):
     def clean(self):
         cleaned_data = self.cleaned_data
         if 'packages' in cleaned_data and 'parser' in cleaned_data:
-            data = self.cleaned_data['packages']
-            parser = get_parser(self.cleaned_data['parser'])
+            data = cleaned_data['packages']
+            parser = get_parser(cleaned_data['parser'])
             packages, missing_packages = parser.parse(data.splitlines())
             known_packages = set(Package.objects.filter(name__in=packages)
                                        .values_list('name', flat=True))
