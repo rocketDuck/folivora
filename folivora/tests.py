@@ -343,9 +343,9 @@ class TestSyncProjectTask(TestCase):
                                      state=ProjectMember.MEMBER)
         result = tasks.sync_project.apply(args=(self.project.pk,), throw=True)
         self.assertTrue(result.successful())
-        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject,
-                         '%sNew update available for project "test"'
+                         '%sNew updates available for project "test"'
                          % settings.EMAIL_SUBJECT_PREFIX)
 
 
