@@ -44,12 +44,18 @@
               <a href="{% url 'folivora_project_resign' project.slug %}" title="{% trans 'resign' %}"><i class="icon-leaf"></i></a>
             </td>
           </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4">No projects defined yet, <a href="{% url 'folivora_project_add' %}">create your first project now!</a></td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
     <h2>{% trans 'Recent Changes:' %}</h2>
     {% for log in log_entries %}
       <div class="log well"><img class="pull-right" height=40" src="{{ log.user.email|gravatar_url:40 }}"/>{% include log.template %}</div>
+    {% empty %}
+      <div class="log well"><strong>Nothing changed so far...</strong></div>
     {% endfor %}
   </div>
   <div class="well span3">
