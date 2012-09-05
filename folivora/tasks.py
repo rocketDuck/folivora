@@ -13,14 +13,13 @@ import logging
 import pytz
 from celery import task
 from celery.task import current
-from django.db import transaction
 from django.utils import timezone
 from distutils.version import LooseVersion
 
 from .models import (SyncState, Package, PackageVersion,
     ProjectDependency, Log, Project)
 from .utils.pypi import CheeseShop
-from .utils.notifications import route_notifications
+from .utils.notifications import send_notifications
 
 
 logger = logging.getLogger(__name__)
@@ -77,6 +76,7 @@ def sync_with_changelog():
             current.iterations += 1
             current.retry(countdown=0, exc=exc)
     else:
+        projects = set()
         for package, version, stamp, action in log:
             if action == 'new release':
                 try:
@@ -95,13 +95,11 @@ def sync_with_changelog():
                     ProjectDependency.objects.filter(package=pkg) \
                                              .update(update=update)
 
-                projects = log_affected_projects(pkg,
-                                                 action='new_release',
-                                                 type='package',
-                                                 data={'version': version})
-
-                for project in projects:
-                    sync_project.apply(args=(project,))
+                projects.update(
+                    log_affected_projects(pkg,
+                                          action='new_release',
+                                          type='package',
+                                          data={'version': version}))
 
             elif action == 'remove':
                 # We only clear versions and set the recent updated version
@@ -109,22 +107,25 @@ def sync_with_changelog():
                 # stability on ProjectDependency.
                 try:
                     pkg = Package.objects.get(name=package)
-                    with transaction.commit_on_success():
-                        ProjectDependency.objects.filter(package=pkg) \
-                                                 .update(update=None)
+                    ProjectDependency.objects.filter(package=pkg) \
+                                             .update(update=None)
 
-                        if version is None:
-                            pkg.versions.all().delete()
+                    if version is None:
+                        pkg.versions.all().delete()
 
-                        log_affected_projects(pkg, action='remove_package',
-                                              type='package',
-                                              data={'package': package})
+                    log_affected_projects(pkg, action='remove_package',
+                                          type='package',
+                                          data={'package': package})
                 except Package.DoesNotExist:
                     pass
 
             elif action == 'create':
                 if not Package.objects.filter(name=package).exists():
                     Package.create_with_provider_url(package)
+
+
+        for project in projects:
+            sync_project.apply(args=(project,))
 
         SyncState.objects.filter(type=SyncState.CHANGELOG) \
                          .update(last_sync=next_last_sync,
@@ -174,4 +175,4 @@ def sync_project(project_pk):
                                          'since': since}))
     if log_entries:
         Log.objects.bulk_create(log_entries)
-        route_notifications(*log_entries)
+        send_notifications(project, log_entries)

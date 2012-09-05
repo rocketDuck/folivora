@@ -11,36 +11,34 @@ from django.core.mail import send_mail
 from django.utils.translation import ugettext as _
 
 
-def route_notifications(*log_entries):
-    """Route notifications to specific endpoints depending on their log action.
+def send_notifications(project, log_entries):
+    """Send notifications for one project.
 
-    :param log_entries: All log entries where notifications needs to be routed.
+    :project: The project to send notifications for.
+    :param log_entries: log entries to be sent.
     """
+    rendered_entries = []
     for entry in log_entries:
-        if entry.action in ACTION_MAPPING:
-            ACTION_MAPPING[entry.action](entry)
+        if entry.action in TEMPLATE_MAPPING:
+            tmpl = TEMPLATE_MAPPING[entry.action]
+            msg = loader.render_to_string(tmpl, {'log': entry})
+            rendered_entries.append(msg)
 
-
-def send_update_avilable_notification(log):
-    """Send a notification to all project members that are affected by `log`.
-
-    :param log: Log model that holds information for the notification.
-    """
-    msg = loader.render_to_string('notifications/update_available.mail.txt',
-                                  {'log': log})
-    tmpl = _('{prefix}New update available for project "{project}"')
-    subject = tmpl.format(**{'prefix': settings.EMAIL_SUBJECT_PREFIX,
-                             'project': log.project.name})
+    subject_tmpl = _('{prefix}New updates available for project "{project}"')
+    subject = subject_tmpl.format(**{'prefix': settings.EMAIL_SUBJECT_PREFIX,
+                             'project': project.name})
+    body = ''.join(rendered_entries)
 
     mails = []
-    members = log.project.projectmember_set.all()
+    members = project.projectmember_set.all()
+
     for member in members:
         mails.append(member.mail or member.user.email)
 
-    send_mail(subject, msg, settings.DEFAULT_FROM_EMAIL, mails,
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, mails,
               fail_silently=False)
 
 
-ACTION_MAPPING = {
-    'update_available': send_update_avilable_notification
+TEMPLATE_MAPPING = {
+    'update_available': 'notifications/update_available.mail.txt',
 }
