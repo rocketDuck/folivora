@@ -15,7 +15,7 @@ from django.contrib.auth.models import User
 
 from django_orm.postgresql import hstore
 
-from .utils.pypi import DEFAULT_SERVER, CheeseShop
+from .utils.pypi import DEFAULT_SERVER, CheeseShop, normalize_name
 
 
 PROVIDES = ('pypi',)
@@ -28,6 +28,8 @@ class Package(models.Model):
     )
 
     name = models.CharField(_('name'), max_length=255, unique=True)
+    normalized_name = models.CharField(_('Normalized Name'), max_length=255,
+                                       unique=True, null=True)
     url = models.URLField(_('url'))
     provider = models.CharField(_('provider'), max_length=255,
         choices=PROVIDER_CHOICES, default=PYPI)
@@ -60,6 +62,11 @@ class Package(models.Model):
                     release_date=release_date)
         self.initial_sync_done = True
         self.save()
+
+    def save(self, *args, **kwargs):
+        if not self.normalized_name:
+            self.normalized_name = normalize_name(self.name)
+        super(Package, self).save(*args, **kwargs)
 
     class Meta:
         verbose_name = _('package')

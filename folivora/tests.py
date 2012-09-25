@@ -97,6 +97,14 @@ class TestPackageModel(TestCase):
         self.assertEqual(pkg.url, 'http://pypi.python.org/pypi/gunicorn')
         self.assertEqual(pkg.provider, 'pypi')
 
+    def test_creation_automatic_normalize(self):
+        Package.objects.create(name='GuNiCoRn',
+                               url='http://pypi.python.org/pypi/gunicorn',
+                               provider='pypi')
+        pkg = Package.objects.get(name='GuNiCoRn')
+        self.assertEqual(pkg.name, 'GuNiCoRn')
+        self.assertEqual(pkg.normalized_name, 'gunicorn')
+
     @mock.patch('folivora.models.CheeseShop', CheesyMock)
     def test_version_sync(self):
         pkg = Package.objects.get(name='pmxbot')

@@ -6,7 +6,12 @@
     Utilities to access pypi compatible servers.
 """
 import time
+import pkg_resources
 import xmlrpclib
+
+
+def normalize_name(name):
+    return pkg_resources.safe_name(name).lower()
 
 
 def get_seconds(hours):
