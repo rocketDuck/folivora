@@ -35,11 +35,13 @@ class AddProjectForm(ModelForm):
         if data and 'parser' in cleaned_data:
             parser = get_parser(cleaned_data['parser'])
             packages, missing = parser.parse(data)
-            packages = dict((normalize_name(k), v) for k, v in packages.iteritems())
+            packages = dict((normalize_name(k), v) for k, v
+                                                   in packages.iteritems())
 
             pkg_names = [normalize_name(name) for name in packages.keys()]
 
-            known_packages = Package.objects.filter(normalized_name__in=pkg_names)\
+            known_packages = Package.objects \
+                .filter(normalized_name__in=pkg_names) \
                 .values_list('normalized_name', 'name', 'pk')
             known_package_names = map(lambda x: x[1], known_packages)
 
@@ -48,8 +50,9 @@ class AddProjectForm(ModelForm):
             missing.extend(set(pkg_names).difference(normalized))
 
             for normalized, name, pk in known_packages:
-                project_deps.append(ProjectDependency(package_id=pk,
-                                                      version=packages[normalized]))
+                project_deps.append(
+                    ProjectDependency(package_id=pk,
+                                      version=packages[normalized]))
         cleaned_data['requirements'] = project_deps
         return cleaned_data
 
@@ -115,8 +118,9 @@ class UpdateProjectDependencyForm(forms.Form):
             parser = get_parser(cleaned_data['parser'])
             packages, missing_packages = parser.parse(data.splitlines())
             pkg_names = [normalize_name(name) for name in packages.keys()]
-            known_packages = set(Package.objects.filter(normalized_name__in=pkg_names)
-                                       .values_list('normalized_name', 'name'))
+            known_packages = set(
+                Package.objects.filter(normalized_name__in=pkg_names)
+                               .values_list('normalized_name', 'name'))
             pkg_mapping = dict(known_packages)
 
             # Show real package names instead of normalized version.

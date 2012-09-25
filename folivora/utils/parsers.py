@@ -1,6 +1,5 @@
 #-*- coding: utf-8 -*-
 import pkg_resources
-from collections import namedtuple
 from django.utils.translation import ugettext_lazy
 
 

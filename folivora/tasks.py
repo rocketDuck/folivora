@@ -95,7 +95,7 @@ def sync_with_changelog():
                     ProjectDependency.objects.filter(package=pkg) \
                                              .update(update=update)
 
-                projects.update(Project.objects.filter(dependencies__package=pkg) \
+                projects.update(Project.objects.filter(dependencies__package=pkg)
                                                .values_list('id', flat=True))
 
             elif action == 'remove':
@@ -118,7 +118,6 @@ def sync_with_changelog():
             elif action == 'create':
                 if not Package.objects.filter(name=package).exists():
                     Package.create_with_provider_url(package)
-
 
         for project in projects:
             sync_project.apply(args=(project,))
