@@ -369,8 +369,9 @@ class TestProjectForms(TestCase):
         self.c = Client()
         self.c.login(username='apollo13', password='pwd')
         Package.objects.bulk_create([
-            Package(name='Django'),
-            Package(name='Sphinx')
+            Package(name='Django', normalized_name='django'),
+            Package(name='Sphinx', normalized_name='sphinx'),
+            Package(name='django_compressor', normalized_name='django-compressor')
         ])
 
     def test_create_project_without_req(self):
@@ -409,6 +410,19 @@ class TestProjectForms(TestCase):
         p = Project.objects.get(slug='test')
         # although the requirements are somewhat borked we import what we can
         self.assertEqual(p.dependencies.count(), 2)
+
+    def test_create_project_with_falsy_package_name(self):
+        """Ensure that unsupported requirement lines are skipped"""
+        response = self.c.post('/projects/add/', {
+            'slug': 'test', 'name': 'test',
+            'requirements': ContentFile('django-compressor==1.2', name='req.txt'),
+            'parser': 'pip_requirements'})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'],
+                         'http://testserver/project/test/')
+        p = Project.objects.get(slug='test')
+        # although the requirements are somewhat borked we import what we can
+        self.assertEqual(p.dependencies.count(), 1)
 
     def test_update_project(self):
         """Test project changes work"""

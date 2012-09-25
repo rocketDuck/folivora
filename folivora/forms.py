@@ -7,6 +7,7 @@ from .models import (Project, UserProfile, Package, ProjectDependency,
     ProjectMember)
 from .utils.forms import ModelForm, JabberField
 from .utils.parsers import get_parser, get_parser_choices
+from .utils.pypi import normalize_name
 from .tasks import sync_project
 
 import floppyforms as forms
@@ -34,18 +35,21 @@ class AddProjectForm(ModelForm):
         if data and 'parser' in cleaned_data:
             parser = get_parser(cleaned_data['parser'])
             packages, missing = parser.parse(data)
+            packages = dict((normalize_name(k), v) for k, v in packages.iteritems())
 
-            known_packages = Package.objects.filter(name__in=packages.keys())\
-                .values_list('name', 'pk')
-            known_package_names = map(lambda x: x[0], known_packages)
+            pkg_names = [normalize_name(name) for name in packages.keys()]
+
+            known_packages = Package.objects.filter(normalized_name__in=pkg_names)\
+                .values_list('normalized_name', 'name', 'pk')
+            known_package_names = map(lambda x: x[1], known_packages)
 
             # TODO: report missing back to the ui.
-            missing.extend(
-                set(packages.keys()).difference(set(known_package_names)))
+            normalized = (normalize_name(n) for n in known_package_names)
+            missing.extend(set(pkg_names).difference(normalized))
 
-            for name, pk in known_packages:
+            for normalized, name, pk in known_packages:
                 project_deps.append(ProjectDependency(package_id=pk,
-                                                      version=packages[name]))
+                                                      version=packages[normalized]))
         cleaned_data['requirements'] = project_deps
         return cleaned_data
 
@@ -110,9 +114,15 @@ class UpdateProjectDependencyForm(forms.Form):
             data = cleaned_data['packages']
             parser = get_parser(cleaned_data['parser'])
             packages, missing_packages = parser.parse(data.splitlines())
-            known_packages = set(Package.objects.filter(name__in=packages)
-                                       .values_list('name', flat=True))
-            unknown_packages = set(packages).difference(known_packages)
+            pkg_names = [normalize_name(name) for name in packages.keys()]
+            known_packages = set(Package.objects.filter(normalized_name__in=pkg_names)
+                                       .values_list('normalized_name', 'name'))
+            pkg_mapping = dict(known_packages)
+
+            # Show real package names instead of normalized version.
+            unknown_packages = set(pkg_mapping[n] for n in
+                set(pkg_names).difference(x[0] for x in known_packages))
+
             if unknown_packages:
                 raise ValidationError(_(
                     'Could not find the following dependencies: %s') %
