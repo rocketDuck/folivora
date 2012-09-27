@@ -357,12 +357,6 @@ class TestSyncProjectTask(TestCase):
                          % settings.EMAIL_SUBJECT_PREFIX)
 
 
-VALID_REQUIREMENTS = 'Django==1.4.1\nSphinx==1.10'
-BROKEN_REQUIREMENTS = ('Django==1.4.1\n_--.>=asdhasjk ,,, [borked]\n'
-                       'Sphinx==1.10')
-EMPTY_REQUIREMENTS = ''
-
-
 class TestProjectForms(TestCase):
     def setUp(self):
         User.objects.create_user('apollo13', 'mail@example.com', 'pwd')
@@ -386,7 +380,8 @@ class TestProjectForms(TestCase):
         """Test that basic project creation works"""
         response = self.c.post('/projects/add/', {
             'slug': 'test', 'name': 'test',
-            'requirements': ContentFile(VALID_REQUIREMENTS, name='req.txt'),
+            'requirements': ContentFile(TestPipRequirementsParsers.VALID,
+                                        name='req.txt'),
             'parser': 'pip_requirements'})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['Location'],
@@ -402,7 +397,8 @@ class TestProjectForms(TestCase):
         """Ensure that unsupported requirement lines are skipped"""
         response = self.c.post('/projects/add/', {
             'slug': 'test', 'name': 'test',
-            'requirements': ContentFile(BROKEN_REQUIREMENTS, name='req.txt'),
+            'requirements': ContentFile(TestPipRequirementsParsers.BROKEN,
+                                        name='req.txt'),
             'parser': 'pip_requirements'})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['Location'],
@@ -692,6 +688,11 @@ class TestUtils(TestCase):
 
 class TestPipRequirementsParsers(TestCase):
 
+    VALID = 'Django==1.4.1\nSphinx==1.10'
+    BROKEN = ('Django==1.4.1\n_--.>=asdhasjk ,,, [borked]\n'
+              'Sphinx==1.10')
+    EMPTY = ''
+
     def setUp(self):
         self.parse = get_parser('pip_requirements').parse
 
@@ -701,24 +702,26 @@ class TestPipRequirementsParsers(TestCase):
 
     def test_pip_requirements_parse_valid(self):
         packages, missing = self.parse(
-            ContentFile(VALID_REQUIREMENTS).readlines())
+            ContentFile(self.VALID).readlines())
         self.assertEqual(packages, {'Sphinx': '1.10', 'Django': '1.4.1'})
         self.assertFalse(missing)
 
     def test_pip_requirements_parse_parse_broken(self):
         packages, missing = self.parse(
-            ContentFile(BROKEN_REQUIREMENTS))
+            ContentFile(self.BROKEN))
         self.assertEqual(packages, {'Sphinx': '1.10', 'Django': '1.4.1'})
         self.assertEqual(missing, ['_--.>=asdhasjk ,,, [borked]\n'])
 
     def test_pip_requirements_parse_empty(self):
         packages, missing = self.parse(
-            ContentFile(EMPTY_REQUIREMENTS))
+            ContentFile(self.EMPTY))
         self.assertEqual(packages, {})
         self.assertEqual(missing, [])
 
 
 class TestBuildoutVersionsParser(TestCase):
+    EMPTY = ''
+
     SIMPLE = '''[versions]
 Django = 1.4.1
 '''
@@ -776,6 +779,6 @@ foo = 1.0
         self.assertEqual([], missing)
 
     def test_parse_empty(self):
-        packages, missing = self.parse(ContentFile(EMPTY_REQUIREMENTS))
+        packages, missing = self.parse(ContentFile(self.EMPTY))
         self.assertEqual({}, packages)
         self.assertEqual([], missing)
