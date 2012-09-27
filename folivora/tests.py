@@ -716,3 +716,66 @@ class TestPipRequirementsParsers(TestCase):
             ContentFile(EMPTY_REQUIREMENTS))
         self.assertEqual(packages, {})
         self.assertEqual(missing, [])
+
+
+class TestBuildoutVersionsParser(TestCase):
+    SIMPLE = '''[versions]
+Django = 1.4.1
+'''
+
+    RENAMED = '''[buildout]
+versions = pinnedversions
+
+[pinnedversions]
+Django = 1.4.1
+'''
+
+    MISSING = '''[versions]
+Sphinx==1.10
+Django =
+'''
+
+    COMMENTED = '''[versions]
+# Sphinx = 1.10
+Django = 1.4.1 ; 1.4.0
+rem Sphinx = 1.10
+'''
+
+    BROKEN = '''
+Sphinx = 1.10
+[versions
+foo = 1.0
+'''
+
+    def setUp(self):
+        self.parse = get_parser('buildout_versions').parse
+
+    def test_simple(self):
+        packages, missing = self.parse(ContentFile(self.SIMPLE))
+        self.assertEqual({'Django': '1.4.1'}, packages)
+        self.assertEqual([], missing)
+
+    def test_renamed(self):
+        packages, missing = self.parse(ContentFile(self.RENAMED))
+        self.assertEqual({'Django': '1.4.1'}, packages)
+        self.assertEqual([], missing)
+
+    def test_missing(self):
+        packages, missing = self.parse(ContentFile(self.MISSING))
+        self.assertEqual({}, packages)
+        self.assertItemsEqual(['Django', 'Sphinx'], missing)
+
+    def test_commented(self):
+        packages, missing = self.parse(ContentFile(self.COMMENTED))
+        self.assertEqual({'Django': '1.4.1'}, packages)
+        self.assertEqual([], missing)
+
+    def test_broken(self):
+        packages, missing = self.parse(ContentFile(self.BROKEN))
+        self.assertEqual({}, packages)
+        self.assertEqual([], missing)
+
+    def test_parse_empty(self):
+        packages, missing = self.parse(ContentFile(EMPTY_REQUIREMENTS))
+        self.assertEqual({}, packages)
+        self.assertEqual([], missing)
