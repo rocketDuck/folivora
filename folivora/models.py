@@ -29,7 +29,7 @@ class Package(models.Model):
 
     name = models.CharField(_('name'), max_length=255, unique=True)
     normalized_name = models.CharField(_('Normalized Name'), max_length=255,
-                                       unique=True, null=True)
+                                       unique=True)
     url = models.URLField(_('url'))
     provider = models.CharField(_('provider'), max_length=255,
         choices=PROVIDER_CHOICES, default=PYPI)
