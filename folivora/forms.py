@@ -124,7 +124,7 @@ class UpdateProjectDependencyForm(forms.Form):
             pkg_mapping = dict(known_packages)
 
             # Show real package names instead of normalized version.
-            unknown_packages = set(pkg_mapping[n] for n in
+            unknown_packages = set(name for name in
                 set(pkg_names).difference(x[0] for x in known_packages))
 
             if unknown_packages:

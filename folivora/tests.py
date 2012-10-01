@@ -597,17 +597,28 @@ class TestProjectViews(TestCase):
         response = self.c.get('/project/test/deps/')
         self.assertEqual(response.context['form'].initial['packages'],
                          'Django==1\ntest==2')
+
+    def test_update_dependency_new_package(self):
         response = self.c.post('/project/test/deps/',
                                {'packages': 'Django==2\ntest==2\nnew==3',
                                 'parser': 'pip_requirements'})
         self.assertTrue(ProjectDependency.objects.filter(
             project=self.project, package=self.new_package).exists())
+
+    def test_update_dependency_unknown_package(self):
         response = self.c.post('/project/test/deps/',
-                               {'packages': 'Django==2\nunknown==3'})
+                               {'packages': 'Django==2\nunknown==3',
+                                'parser': 'pip_requirements'})
         self.assertEqual(response.status_code, 200)
+        self.assertIn('Could not find the following dependencies: unknown',
+                      response.context['form'].errors['__all__'])
+
+    def test_update_dependency_parser_missing(self):
         response = self.c.post('/project/test/deps/',
                                {'packages': 'FAIL'})
+
         self.assertEqual(response.status_code, 200)
+        self.assertIn('parser', list(response.context['form'].errors))
 
 
 class TestUserProfileView(TestCase):
