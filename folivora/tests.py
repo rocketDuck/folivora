@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 from .models import (Package, PackageVersion, Project, Log,
     ProjectDependency, ProjectMember, SyncState)
 from . import tasks
-from .utils.parsers import get_parser
+from .utils.parsers import get_parser, BaseParser
 from .utils.jabber import is_valid_jid
 from .utils.forms import JabberField
 from .utils.views import SortListMixin
@@ -706,6 +706,16 @@ class TestUtils(TestCase):
         self.assertEqual(qs[0].pk, p1.pk)
 
 
+class TestBasicParser(TestCase):
+
+    def test_unimplemented_parser_raises_not_implemented(self):
+        parser = BaseParser()
+        self.assertRaises(NotImplementedError, parser.parse, [])
+
+    def test_get_parser_on_not_existing_parser(self):
+        self.assertRaises(ValueError, get_parser, 'fancy_unknown_parser')
+
+
 class TestPipRequirementsParsers(TestCase):
 
     VALID = 'Django==1.4.1\nSphinx==1.10'
@@ -746,6 +756,10 @@ class TestBuildoutVersionsParser(TestCase):
 Django = 1.4.1
 '''
 
+    EMPTY_VERSION = '''[versions]
+Empty = ""
+'''
+
     RENAMED = '''[buildout]
 versions = pinnedversions
 
@@ -777,6 +791,11 @@ foo = 1.0
         packages, missing = self.parse(ContentFile(self.SIMPLE))
         self.assertEqual({'Django': '1.4.1'}, packages)
         self.assertEqual([], missing)
+
+    def test_allow_empty_version(self):
+        packages, missing = self.parse(ContentFile(self.EMPTY_VERSION))
+        self.assertEqual({}, packages)
+        self.assertEqual(['Empty'], missing)
 
     def test_renamed(self):
         packages, missing = self.parse(ContentFile(self.RENAMED))
