@@ -519,6 +519,7 @@ class TestProjectViews(TestCase):
         self.c = Client()
         self.c.login(username='admin', password='pwd')
         Package.create_with_provider_url('Django')
+        Package.create_with_provider_url('Sphinx')
         Package.create_with_provider_url('test')
         self.new_package = Package.create_with_provider_url('new')
 
@@ -619,6 +620,14 @@ class TestProjectViews(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn('parser', list(response.context['form'].errors))
+
+    def test_update_dependency_broken_requirements(self):
+        response = self.c.post('/project/test/deps/',
+                               {'packages': TestPipRequirementsParsers.BROKEN,
+                                'parser': 'pip_requirements'})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(u'Could not parse the following dependencies: _--.>=asdhasjk ,,, [borked]',
+                      response.context['form'].errors['__all__'])
 
 
 class TestUserProfileView(TestCase):
